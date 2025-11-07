@@ -3,32 +3,21 @@ import bcrypt from 'bcrypt';
 
 const userSchema = new Schema(
   {
-    name: {
-      type: String,
-      trim: true,
-
-      default: function () {
-        return this.email ? this.email.split('@')[0] : undefined;
-      },
-    },
-    email: {
+    name: { type: String, trim: true },
+    phone: {
       type: String,
       required: true,
       unique: true,
-      lowercase: true,
-      trim: true,
       index: true,
     },
-    password: {
+
+    email: {
       type: String,
-      required: true,
-      select: false,
+      lowercase: true,
+      trim: true,
     },
-    role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
-    },
+    password: { type: String, required: true, select: false },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
   },
   {
     timestamps: true,
@@ -42,11 +31,20 @@ const userSchema = new Schema(
   },
 );
 
-userSchema.index({ email: 1 }, { unique: true });
+userSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      email: { $exists: true, $type: 'string' },
+    },
+  },
+);
 
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-  this.password = await bcrypt.hash(this.password, 10);
+  const rounds = Number(process.env.BCRYPT_ROUNDS ?? 10);
+  this.password = await bcrypt.hash(this.password, rounds);
 });
 
 userSchema.methods.comparePassword = function (candidatePassword) {
