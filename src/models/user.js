@@ -1,45 +1,56 @@
-import { model, Schema } from "mongoose";
+import { Schema, model } from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const userSchema = new Schema(
-	{
-		username: {
-			type: String,
-			trim: true,
-		},
-		email: {
-			type: String,
-			required: true,
-			unique: true,
-			trim: true
-		},
-		password: {
-			type: String,
-			required: true,
-		},
-		avatar: {
-			type: String,
-			required: false,
-			default: "https://ac.goit.global/fullstack/react/default-avatar.jpg",
-		},
-	},
-	{
-		timestamps: true,
-		//versionKey: false
-	}
-)
+  {
+    name: {
+      type: String,
+      trim: true,
 
-userSchema.pre('save', function (next) {
-	if (!this.username) {
-		this.username = this.email
-	}
-	next()
-})
+      default: function () {
+        return this.email ? this.email.split('@')[0] : undefined;
+      },
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      transform(_doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
+  },
+);
 
-userSchema.methods.toJSON = function () {
-	const obj = this.toObject()
-	delete obj.password
-	return obj
-}
+userSchema.index({ email: 1 }, { unique: true });
 
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});
 
-export const User = model('User', userSchema)
+userSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+export const User = model('User', userSchema);
