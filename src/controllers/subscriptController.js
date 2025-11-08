@@ -3,7 +3,7 @@ import handlebars from 'handlebars';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { Subscription } from '../models/subscription.js';
-import { sendEmail } from '../utils/subscriptMail.js';
+import { sendSubscriptEmail } from '../utils/sendMail.js';
 
 export const createSubscription = async (req, res, next) => {
   const { email } = req.body;
@@ -41,7 +41,7 @@ export const submitSubscription = async (req, res, next) => {
         email: subscriber.email,
         link: siteLink,
       });
-      await sendEmail({
+      await sendSubscriptEmail({
         from: process.env.SMTP_FROM,
         to: subscriber.email,
         subject: 'Новинки у Clothica',

@@ -34,7 +34,7 @@ export const authenticate = async (req, res, next) => {
 
 export const checkAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Доступ заборонено: лише для адміністраторів.' });
+    return res.status(403).json({ message: 'Доступ заборонено! Лише для адміністраторів.' });
   }
   next();
 };
