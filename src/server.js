@@ -9,30 +9,28 @@ import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { errors } from 'celebrate';
 
-import notesRoutes from './routes/notesRoutes.js';
+import categoriesRoutes from './routes/categoryRoutes.js';
 import authRoutes from './routes/authRoutes.js'
 import userRoutes from './routes/userRoutes.js';
-import { setupSwagger } from './swagger.js';
-
+// import { setupSwagger } from './swagger.js';
+import goodsRoutes from "./routes/goodsRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
 const app = express();
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 3030;
 
 app.use(express.json());
-app.use(
-	cors({
-		origin: "https://notehub-app-auth.vercel.app",
-		credentials: true,
-	})
-)
+app.use(cors())
 app.use(cookieParser());
 
 //swagger
-setupSwagger(app);
+// setupSwagger(app);
 //app.use("/api", userApiRoutes);
 
 app.use(logger);
 app.use(authRoutes);
-app.use(notesRoutes);
+app.use(categoriesRoutes);
+app.use(goodsRoutes);
+app.use(feedbackRoutes);
 app.use(userRoutes);
 
 //MW
