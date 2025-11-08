@@ -10,8 +10,8 @@ export const getFeedbacks = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
-    if (req.query.goodId && isValidObjectId(req.query.goodId)) {
-      filter.good = req.query.goodId;
+    if (req.query.productId && isValidObjectId(req.query.productId)) {
+      filter.productId = req.query.productId;
     }
 
     const [total, items] = await Promise.all([
@@ -21,15 +21,16 @@ export const getFeedbacks = async (req, res, next) => {
         .skip(skip)
         .limit(limit)
         .select("-__v")
-        .populate("user", "username email")
-        .populate("good", "name"),
+        .populate("productId", "name"),
     ]);
 
+    const totalPages = Math.ceil(total / limit);
+    
     res.json({
       page,
       limit,
       total,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
+      totalPages,
       items,
     });
   } catch (err) {
@@ -39,33 +40,28 @@ export const getFeedbacks = async (req, res, next) => {
 
 export const createFeedback = async (req, res, next) => {
   try {
-    const { goodId, rate, description } = req.body;
+    const { productId, author, rate, description, category } = req.body;
 
-    const good = await Good.findById(goodId);
-    if (!good) return next(createHttpError(404, "Good not found"));
-
-    const user = req.user;
-    if (!user) return next(createHttpError(401, "Unauthorized"));
+    const product = await Good.findById(productId).select('_id');
+    if (!product) return next(createHttpError(404, 'Good not found'));
 
     const doc = await Feedback.create({
-      author: user.username || user.email,
-      user: user._id,
-      good: good._id,
+      productId: product._id,
+      author,
       rate,
       description,
-      date: new Date(),
+      category,
+      approved: false,
     });
+  
 
-    await Good.updateOne(
-      { _id: good._id },
+  await Good.updateOne(
+      { _id: product._id },
       { $addToSet: { feedbacks: doc._id } }
-    );
+    ).catch(() => {});
 
     res.status(201).json(doc);
   } catch (err) {
-    if (err?.code === 11000) {
-      return next(createHttpError(409, "You already reviewed this good"));
-    }
     next(err);
   }
 };

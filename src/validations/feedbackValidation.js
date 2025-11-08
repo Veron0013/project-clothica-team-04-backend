@@ -1,22 +1,27 @@
-import { Joi, Segments } from "celebrate";
-import { isValidObjectId } from "mongoose";
+import { Joi, Segments } from 'celebrate';
+import { isValidObjectId } from 'mongoose';
 
-const objectId = (value, helpers) => {
-  if (!isValidObjectId(value)) return helpers.message("Invalid id format");
-  return value;
+const objectIdValidator = (value, helpers) => {
+  return isValidObjectId(value) ? value : helpers.message('Invalid id format');
 };
 
 export const createFeedbackSchema = {
   [Segments.BODY]: Joi.object({
-    goodId: Joi.string().custom(objectId).required(),
-    rate: Joi.number().integer().min(1).max(5).required().multiple(0.5),
+    author: Joi.string().min(2).max(53).required(),
     description: Joi.string().min(3).max(2000).required(),
+    rate: Joi.number()
+      .min(1)
+      .max(5)
+      .valid(1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5)
+      .required(),
+    category: Joi.string().trim().optional(),
+    productId: Joi.string().custom(objectIdValidator).required(),
   }),
 };
 
 export const getFeedbacksSchema = {
   [Segments.QUERY]: Joi.object({
-    goodId: Joi.string().custom(objectId),
+    productId: Joi.string().custom(objectIdValidator),
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(24).default(6),
   }),
