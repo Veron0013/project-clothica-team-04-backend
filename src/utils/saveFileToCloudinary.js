@@ -11,7 +11,7 @@ cloudinary.config({
 export async function saveFileToCloudinary(buffer) {
 	return new Promise((res, rej) => {
 		const uploadStream = cloudinary.uploader.upload_stream({
-			folder: "notes-app/avatar",
+			folder: "clothica-app/avatar",
 			resource_type: "image",
 			overwrite: true,
 			unique_filename: true,
