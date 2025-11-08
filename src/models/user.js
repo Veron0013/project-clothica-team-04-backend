@@ -26,8 +26,7 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: ['user', 'admin'],
-      default: 'user',
-      required: true
+      default: 'user'
     },
   },
   {
@@ -47,7 +46,11 @@ userSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      email: { $exists: true, $type: 'string' },
+      $and: [
+        { email: { $exists: true } },
+        { email: { $ne: '' } },
+        { email: { $ne: null } },
+      ],
     },
   },
 );

@@ -8,7 +8,7 @@ const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 export const sendMail = async ({ to, subject, html }) => {
   try {
     const sendSmtpEmail = {
-      sender: { name: 'Your App', email: process.env.SMTP_FROM },
+      sender: { name: 'Clothica App', email: process.env.SMTP_FROM },
       to: [{ email: to }],
       subject,
       htmlContent: html,
@@ -20,19 +20,4 @@ export const sendMail = async ({ to, subject, html }) => {
     console.error('❌ Email API error:', error);
     throw error;
   }
-};
-////////////////////////////
-import nodemailer from 'nodemailer';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
-
-export const sendSubscriptEmail = async (options) => {
-  return await transporter.sendMail(options);
 };

@@ -22,36 +22,37 @@ export const createSubscription = async (req, res) => {
 };
 
 export const submitSubscription = async (req, res) => {
-  try {
-    // шукаю всіх підписників
-    const subscribers = await Subscription.find({}, 'email');
-    if (!subscribers.length) {
-      return res.status(404).json({ message: 'Немає підписників!!!' });
-    }
 
-    const templatePath = path.resolve('src/templates/news-letter-email.html');
-    const templateSource = await fs.readFile(templatePath, 'utf-8');
-    const template = handlebars.compile(templateSource);
+  // шукаю всіх підписників
+  const subscribers = await Subscription.find({}, 'email');
+  if (!subscribers.length) {
+    return res.status(404).json({ message: 'Немає підписників!!!' });
+  }
 
-    //  Посилання на сайт або  в .env
-    const siteLink = process.env.SITE_URL || 'https://clothica.com';
+  const templatePath = path.resolve('src/templates/news-litter-email.html');
+  const templateSource = await fs.readFile(templatePath, 'utf-8');
+  const template = handlebars.compile(templateSource);
 
-    for (const subscriber of subscribers) {
-      const html = template({
-        email: subscriber.email,
-        link: siteLink,
-      });
-      //await sendSubscriptEmail({
+  //  Посилання на сайт або  в .env
+  const siteLink = process.env.SITE_URL || 'https://clothica.com';
+
+  for (const subscriber of subscribers) {
+    const html = template({
+      email: subscriber.email,
+      link: siteLink,
+    });
+    try {
       await sendMail({
         from: process.env.SMTP_FROM,
         to: subscriber.email,
         subject: 'Новинки у Clothica',
         html,
       });
+    } catch (error) {
+      console.log(error)
+      throw createHttpError(500, error);
     }
-
-    res.status(200).json({ message: `Електронні листи надіслані для ${subscribers.length} підписників!` });
-  } catch {
-    throw createHttpError(500, 'Не вдалося надіслати електронні листи!');
   }
+
+  res.status(200).json({ message: `Електронні листи надіслані для ${subscribers.length} підписників!` });
 };
