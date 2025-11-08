@@ -25,7 +25,7 @@ export const getFeedbacks = async (req, res, next) => {
     ]);
 
     const totalPages = Math.ceil(total / limit);
-    
+
     res.json({
       page,
       limit,
@@ -42,8 +42,8 @@ export const createFeedback = async (req, res, next) => {
   try {
     const { productId, author, rate, description, category } = req.body;
 
-    const product = await Good.findById(productId).select('_id');
-    if (!product) return next(createHttpError(404, 'Good not found'));
+    const product = await Good.findById(productId).select("_id");
+    if (!product) return next(createHttpError(404, "Good not found"));
 
     const doc = await Feedback.create({
       productId: product._id,
@@ -53,9 +53,8 @@ export const createFeedback = async (req, res, next) => {
       category,
       approved: false,
     });
-  
 
-  await Good.updateOne(
+    await Good.updateOne(
       { _id: product._id },
       { $addToSet: { feedbacks: doc._id } }
     ).catch(() => {});

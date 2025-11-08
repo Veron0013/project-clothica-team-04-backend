@@ -33,15 +33,16 @@ export const updateUserProfile = async (req, res) => {
   res.status(200).json(user);
 };
 
-export const getUser = async (req, res) => {
-  const userId = req.user._id;
-  const user = await User.findOne({ _id: userId });
 
-  if (!user) {
-    throw createHttpError(404, 'user not found');
+export const getCurrentUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw createHttpError(404, "User not found");
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
   }
-
-  res.status(200).json(user);
 };
-
-export const sebscription = async () => {};

@@ -3,6 +3,8 @@
 .idea
 .env
 
+pullreq.txt
+
 # Logs
 logs
 *.log

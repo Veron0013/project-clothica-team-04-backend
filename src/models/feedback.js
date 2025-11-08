@@ -13,4 +13,12 @@ const feedbackSchema = new Schema(
   { timestamps: true, versionKey: false }
 );
 
+feedbackSchema.set("toJSON", {
+  transform: (_doc, ret) => {
+    if (ret._id) ret._id = String(ret._id);
+    if (ret.category) ret.category = String(ret.category);
+    return ret;
+  },
+});
+
 export const Feedback = model("Feedback", feedbackSchema);

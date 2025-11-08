@@ -11,25 +11,22 @@ import { Session } from '../models/session.js';
 import { sendMail } from '../utils/sendMail.js';
 import { normalizePhone } from '../utils/normalizePhone.js';
 
-export const registerUser = async (req, res, next) => {
-  try {
-    const { phone: rawPhone, password, name } = req.body ?? {};
-    if (!rawPhone || !password) return next(createHttpError(400, 'Phone and password required'));
+export const registerUser = async (req, res) => {
+  const { phone: rawPhone, password, name } = req.body ?? {};
+  if (!rawPhone || !password) throw createHttpError(400, 'Phone and password required');
 
-    const phone = normalizePhone(rawPhone);
-    if (!phone) return next(createHttpError(400, 'Invalid phone number'));
+  const phone = normalizePhone(rawPhone);
+  if (!phone) throw createHttpError(400, 'Invalid phone number');
 
-    const exists = await User.findOne({ phone });
-    if (exists) return next(createHttpError(400, 'Phone already in use'));
+  const exists = await User.findOne({ phone });
+  if (exists) throw createHttpError(400, 'Phone already in use');
 
-    const user = await User.create({ phone, password, name });
-    const newSession = await createSession(user._id);
-    setSessionCookies(res, newSession);
+  const user = await User.create({ phone, password, name });
+  const newSession = await createSession(user._id);
+  setSessionCookies(res, newSession);
 
-    res.status(201).json(user);
-  } catch (e) {
-    next(e);
-  }
+  res.status(201).json(user);
+
 };
 
 export const loginUser = async (req, res, next) => {
@@ -61,6 +58,7 @@ export const loginUser = async (req, res, next) => {
     next(e);
   }
 };
+
 export const logoutUser = async (req, res) => {
   try {
     const { sessionId } = req.cookies;
