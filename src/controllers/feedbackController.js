@@ -12,10 +12,10 @@ export const getFeedbacks = async (req, res, next) => {
 
     const filter = {};
     if (req.query.productId && isValidObjectId(req.query.productId)) {
-      filter.productId = new Types.ObjectId(`${req.query.productId}`);//req.query.productId;
+      filter.productId = new Types.ObjectId(`${req.query.productId}`);
     }
 
-    console.log("f", req.query)
+    //console.log("f", req.query)
     if (req.query.userId && isValidObjectId(req.query.userId)) {
       filter.userId = new Types.ObjectId(`${req.query.userId}`);
     }
