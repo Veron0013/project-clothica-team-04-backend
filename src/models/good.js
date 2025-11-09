@@ -1,6 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 
-export const GENDERS = ['male', 'female', 'unisex'];
+export const GENDERS = ['unisex', 'man', 'women'];
 export const SIZES   = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 export const COLORS  = ['white', 'black', 'grey', 'blue', 'green', 'red', 'pastel'];
 

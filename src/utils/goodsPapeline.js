@@ -45,16 +45,23 @@ export const feedbackPipeline = (productIdField = '$_id') => [
  * Підтягування категорії (назва, без усього зайвого)
  */
 export const categoryLookupPipeline = [
-	{
-		$lookup: {
-			from: 'categories',
-			localField: 'category',
-			foreignField: '_id',
-			as: 'category',
-		},
-	},
-	{ $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-	{ $addFields: { category: { name: '$category.name' } } },
+  {
+    $lookup: {
+      from: 'categories',
+      localField: 'category',
+      foreignField: '_id',
+      as: 'category',
+    },
+  },
+  { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      category: {
+        name: '$category.name',
+        image: { $ifNull: ['$category.image', '$category.img_url'] },
+      },
+    },
+  },
 ];
 
 /**
