@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
-import { getTopRatedGoods, createTopRatedGood } from '../controllers/topRatedGoodsController.js';
-import { createTopRatedGoodSchema, paginationSchema } from '../validators/topRatedGoods.js';
+import { createTopRatedGood, getTopRatedGoods } from '../controllers/topRatedGoodController.js';
+import { createTopRatedGoodSchema, paginationSchema } from '../validations/topRatedGoodValidator.js';
 
 const router = Router();
 

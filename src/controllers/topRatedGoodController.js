@@ -1,8 +1,8 @@
 import createHttpError from 'http-errors';
-import { TopRatedGood } from '../models/topRatedGoods.js';
 import { Good } from '../models/good.js';
+import { TopRatedGood } from '../models/topRatedGood.js';
 
-export const getTopRatedGoods = async (req, res, next) => {
+export const getTopRatedGoods_rw = async (req, res, next) => {
 	try {
 		const page = Math.max(Number(req.query.page) || 1, 1);
 		const limit = Math.min(Number(req.query.limit) || 6, 6);
@@ -14,8 +14,128 @@ export const getTopRatedGoods = async (req, res, next) => {
 				.sort({ createdAt: -1 })
 				.skip(skip)
 				.limit(limit)
-				.populate('productId', 'name price category'),
+				.populate({
+					path: 'productId',
+					select: 'name price category image feedbacks',
+					populate: { // populate feedbacks для отримання rate
+						path: 'feedbacks',
+						select: 'rate approved',
+						match: { approved: false },
+					},
+				})
+				.lean(),
 		]);
+
+		// обчислюємо rating та кількість фідбеків
+		const enrichedItems = items.map(top => {
+			const product = top.productId;
+			const approvedFeedbacks = product.feedbacks || [];
+			//const approvedFeedbacks = feedbacks.filter(f => f.approved);
+			const feedbackCount = approvedFeedbacks.length;
+			const averageRating =
+				feedbackCount > 0
+					? Math.round(
+						approvedFeedbacks.reduce((sum, f) => sum + (f.rate || 0), 0) / feedbackCount * 2
+					) / 2
+					: 0;
+			//- feedbacks e масиві даних
+			// eslint-disable-next-line no-unused-vars
+			const { feedbacks, category, ...productData } = product;
+
+			return {
+				...top,
+				productId: product._id,
+				product: {
+					...productData
+				},
+				feedbackCount,
+				averageRating
+			};
+		});
+
+		res.json({
+			page,
+			limit,
+			total,
+			totalPages: Math.ceil(total / limit),
+			items: enrichedItems,
+		});
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const getTopRatedGoods = async (req, res, next) => {
+	try {
+		const page = Math.max(Number(req.query.page) || 1, 1);
+		const limit = Math.min(Number(req.query.limit) || 6, 6);
+		const skip = (page - 1) * limit;
+
+		const approved = false
+
+		const aggregatePipeline = [
+			{ $sort: { createdAt: -1 } },
+			{ $skip: skip },
+			{ $limit: limit },
+			{
+				$lookup: {
+					from: 'goods',               // колекція товарів
+					localField: 'productId',
+					foreignField: '_id',
+					as: 'product',
+				},
+			},
+			{ $unwind: '$product' },
+			{
+				$lookup: {
+					from: 'feedbacks',           // колекція відгуків
+					let: { feedbackIds: '$product.feedbacks' },
+					pipeline: [
+						{ $match: { $expr: { $in: ['$_id', '$$feedbackIds'] }, approved } },
+						{ $project: { rate: 1 } },
+					],
+					as: 'approvedFeedbacks',
+				},
+			},
+			{
+				$addFields: {
+					feedbackCount: { $size: '$approvedFeedbacks' },
+					averageRating: {
+						$cond: [
+							{ $gt: [{ $size: '$approvedFeedbacks' }, 0] },
+							{
+								$divide: [
+									{ $sum: '$approvedFeedbacks.rate' },
+									{ $size: '$approvedFeedbacks' },
+								],
+							},
+							0,
+						],
+					},
+				},
+			},
+			{
+				$project: {
+					productId: '$product._id',
+					product: {
+						name: '$product.name',
+						price: '$product.price.value',
+						currency: '$product.price.currency',
+						image: '$product.image',
+					},
+					feedbackCount: 1,
+					averageRating: {
+						$divide: [
+							{ $round: [{ $multiply: ['$averageRating', 2] }, 0] },
+							2,
+						],
+					},
+				},
+			},
+		];
+
+		const items = await TopRatedGood.aggregate(aggregatePipeline);
+		const total = await TopRatedGood.countDocuments();
 
 		res.json({
 			page,
