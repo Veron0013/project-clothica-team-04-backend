@@ -14,6 +14,7 @@ import userRoutes from './routes/userRoutes.js';
 import goodsRoutes from "./routes/goodsRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import subscriptRoutes from './routes/subscriptRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 import topRatedGoodsRouter from './routes/topRatedGoodRoutes.js';
 
 
@@ -31,6 +32,7 @@ app.use(categoriesRoutes);
 app.use(goodsRoutes);
 app.use(feedbackRoutes);
 app.use(subscriptRoutes);
+app.use(orderRoutes);
 app.use(topRatedGoodsRouter);
 
 //MW
