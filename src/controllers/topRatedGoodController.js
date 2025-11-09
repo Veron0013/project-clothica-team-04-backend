@@ -1,6 +1,7 @@
 import createHttpError from 'http-errors';
 import { Good } from '../models/good.js';
 import { TopRatedGood } from '../models/topRatedGood.js';
+import { feedbackPipeline } from '../utils/goodsPapeline.js';
 
 export const getTopRatedGoods_rw = async (req, res, next) => {
 	try {
@@ -71,49 +72,20 @@ export const getTopRatedGoods = async (req, res, next) => {
 		const limit = Math.min(Number(req.query.limit) || 6, 6);
 		const skip = (page - 1) * limit;
 
-		const approved = false
-
-		const aggregatePipeline = [
+		const pipeline = [
 			{ $sort: { createdAt: -1 } },
 			{ $skip: skip },
 			{ $limit: limit },
 			{
 				$lookup: {
-					from: 'goods',               // колекція товарів
+					from: 'goods',
 					localField: 'productId',
 					foreignField: '_id',
 					as: 'product',
 				},
 			},
 			{ $unwind: '$product' },
-			{
-				$lookup: {
-					from: 'feedbacks',           // колекція відгуків
-					let: { feedbackIds: '$product.feedbacks' },
-					pipeline: [
-						{ $match: { $expr: { $in: ['$_id', '$$feedbackIds'] }, approved } },
-						{ $project: { rate: 1 } },
-					],
-					as: 'approvedFeedbacks',
-				},
-			},
-			{
-				$addFields: {
-					feedbackCount: { $size: '$approvedFeedbacks' },
-					averageRating: {
-						$cond: [
-							{ $gt: [{ $size: '$approvedFeedbacks' }, 0] },
-							{
-								$divide: [
-									{ $sum: '$approvedFeedbacks.rate' },
-									{ $size: '$approvedFeedbacks' },
-								],
-							},
-							0,
-						],
-					},
-				},
-			},
+			...feedbackPipeline('$product._id'),
 			{
 				$project: {
 					productId: '$product._id',
@@ -124,17 +96,12 @@ export const getTopRatedGoods = async (req, res, next) => {
 						image: '$product.image',
 					},
 					feedbackCount: 1,
-					averageRating: {
-						$divide: [
-							{ $round: [{ $multiply: ['$averageRating', 2] }, 0] },
-							2,
-						],
-					},
+					averageRating: 1,
 				},
 			},
 		];
 
-		const items = await TopRatedGood.aggregate(aggregatePipeline);
+		const items = await TopRatedGood.aggregate(pipeline);
 		const total = await TopRatedGood.countDocuments();
 
 		res.json({
