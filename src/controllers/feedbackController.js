@@ -28,7 +28,8 @@ export const getFeedbacks = async (req, res, next) => {
         .limit(limit)
         .select("-__v")
         .populate("productId", "name")
-        .populate("userId", "name"),
+        .populate("userId", "name")
+        .lean(),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -52,11 +53,11 @@ export const createFeedback = async (req, res, next) => {
     const product = await Good.findById(productId).select("_id");
     if (!product) return next(createHttpError(404, "Good not found"));
 
-    const tempUserId = await User.findById(userId).select("_id") || ""
+    const user = userId ? await User.findById(userId).select('_id') : null;
 
     const doc = await Feedback.create({
       productId: product._id,
-      userId: tempUserId,
+      userId: user?._id || null,
       author,
       rate,
       description,
@@ -67,7 +68,7 @@ export const createFeedback = async (req, res, next) => {
     await Good.updateOne(
       { _id: product._id },
       { $addToSet: { feedbacks: doc._id } }
-    ).catch(() => { });
+    );
 
     res.status(201).json(doc);
   } catch (err) {
