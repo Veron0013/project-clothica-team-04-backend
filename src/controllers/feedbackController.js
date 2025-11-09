@@ -1,7 +1,8 @@
 import createHttpError from "http-errors";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 import { Feedback } from "../models/feedback.js";
 import { Good } from "../models/good.js";
+import { User } from "../models/user.js";
 
 export const getFeedbacks = async (req, res, next) => {
   try {
@@ -11,7 +12,12 @@ export const getFeedbacks = async (req, res, next) => {
 
     const filter = {};
     if (req.query.productId && isValidObjectId(req.query.productId)) {
-      filter.productId = req.query.productId;
+      filter.productId = new Types.ObjectId(`${req.query.productId}`);//req.query.productId;
+    }
+
+    console.log("f", req.query)
+    if (req.query.userId && isValidObjectId(req.query.userId)) {
+      filter.userId = new Types.ObjectId(`${req.query.userId}`);
     }
 
     const [total, items] = await Promise.all([
@@ -21,7 +27,8 @@ export const getFeedbacks = async (req, res, next) => {
         .skip(skip)
         .limit(limit)
         .select("-__v")
-        .populate("productId", "name"),
+        .populate("productId", "name")
+        .populate("userId", "name"),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -40,13 +47,16 @@ export const getFeedbacks = async (req, res, next) => {
 
 export const createFeedback = async (req, res, next) => {
   try {
-    const { productId, author, rate, description, category } = req.body;
+    const { productId, author, rate, description, category, userId } = req.body;
 
     const product = await Good.findById(productId).select("_id");
     if (!product) return next(createHttpError(404, "Good not found"));
 
+    const tempUserId = await User.findById(userId).select("_id") || ""
+
     const doc = await Feedback.create({
       productId: product._id,
+      userId: tempUserId,
       author,
       rate,
       description,
@@ -57,7 +67,7 @@ export const createFeedback = async (req, res, next) => {
     await Good.updateOne(
       { _id: product._id },
       { $addToSet: { feedbacks: doc._id } }
-    ).catch(() => {});
+    ).catch(() => { });
 
     res.status(201).json(doc);
   } catch (err) {

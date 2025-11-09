@@ -1,14 +1,16 @@
 import { Schema, model, Types } from "mongoose";
+import dayjs from "dayjs";
 
 const feedbackSchema = new Schema(
   {
-    productId: { type: Types.ObjectId, ref: 'Good', required: true, index: true },
     author: { type: String, trim: true, required: true },
-    user: { type: Types.ObjectId, ref: "User" },
+    productId: { type: Types.ObjectId, ref: 'Good', required: true, index: true },
+    userId: { type: Types.ObjectId, ref: "User" },
     category: { type: String, trim: true },
-    approved: { type: Boolean, default: false },
     description: { type: String, trim: true, required: true },
-    rate: { type: Number, min: 1, max: 5, required: true },
+    rate: { type: Number, min: 0, max: 5, required: true },
+    date: { type: String, default: () => dayjs().format("DD.MM.YYYY HH:mm") },
+    approved: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false }
 );
