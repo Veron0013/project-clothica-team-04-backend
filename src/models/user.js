@@ -16,9 +16,12 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
+
     password: { type: String, required: true, select: false },
+
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
   },
+
   {
     timestamps: true,
     versionKey: false,
@@ -52,3 +55,4 @@ userSchema.methods.comparePassword = function (candidatePassword) {
 };
 
 export const User = model('User', userSchema);
+
