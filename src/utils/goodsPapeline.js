@@ -60,7 +60,7 @@ export const categoryLookupPipeline = [
 /**
  * Готовий pipeline для агрегування товарів
  */
-export const goodsBasePipeline = (filter = {}, sortStage = { createdAt: -1 }, skip = 0, limit = 12) => [
+export const goodsBasePipeline = (filter = {}, sortStage = { createdAt: -1 }, skip = 0, limit) => [
 	{ $match: filter },
 	{ $sort: sortStage },
 	{ $skip: skip },

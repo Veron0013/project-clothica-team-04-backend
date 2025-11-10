@@ -8,14 +8,14 @@ const csvEnumRegex = (arr) => new RegExp(`^(${arr.join('|')})(,(${arr.join('|')}
 
 export const getAllGoodsSchema = {
   [Segments.QUERY]: Joi.object({
-    category:  Joi.string().custom(objectId),
-    sizes:     Joi.string().pattern(csvEnumRegex(SIZES)),
+    category: Joi.string().custom(objectId),
+    sizes: Joi.string().pattern(csvEnumRegex(SIZES)),
     fromPrice: Joi.number().integer().min(1).max(19999).default(1),
-    toPrice:   Joi.number().integer().min(2).max(20000).default(20000),
-    color:     Joi.string().valid(...COLORS),
-    gender:    Joi.string().valid(...GENDERS),
-    page:      Joi.number().integer().min(1).default(1),
-    perPage:   Joi.number().integer().min(8).max(12).default(12),
+    toPrice: Joi.number().integer().min(2).max(20000).default(20000),
+    color: Joi.string().valid(...COLORS),
+    gender: Joi.string().valid(...GENDERS),
+    page: Joi.number().integer().min(1).default(1),
+    perPage: Joi.number().integer().min(8).default(12),
   }),
 };
 

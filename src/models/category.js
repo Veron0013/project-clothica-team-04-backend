@@ -8,9 +8,9 @@ const categorySchema = new Schema(
       trim: true,
       unique: true,
     },
-    image: {
-  type: String,
-},
+    img_url: {
+      type: String,
+    },
   },
   { timestamps: true, collection: 'categories' }
 );
