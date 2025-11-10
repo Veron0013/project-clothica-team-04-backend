@@ -25,21 +25,37 @@ const orderSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: false,
+        index: true,
     },
     items: [orderItemSchema],
     totalAmount: {
         type: Number,
         required: true,
+        index: true,
+        min: [0.01, 'Total amount must be positive'],
     },
     deliveryDetails: {
-        fullName: { type: String, required: true },
-        phone: { type: String, required: true },
-        address: { type: String, reqired: true },
+        fullName: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        phone: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        address: {
+            type: String,
+            required: true,
+            trim: true,
+        },
     },
     status: {
         type: String,
         enum: Object.values(ORDER_STATUS),
         default: ORDER_STATUS.PENDING,
+        index: true,
     },
 },
     {
