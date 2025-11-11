@@ -5,6 +5,8 @@ import '../models/feedback.js';
 import '../models/category.js';
 import { categoryLookupPipeline, feedbackPipeline, goodsBasePipeline } from '../utils/goodsPapeline.js';
 import { Types } from 'mongoose';
+import { Category } from '../models/category.js';
+import { GENDERS, SIZES, COLORS } from '../models/good.js';
 
 const toList = (val) => {
   if (Array.isArray(val)) return val.filter(Boolean);
@@ -119,5 +121,21 @@ export const getGoodById = async (req, res, next) => {
     res.status(200).json(good);
   } catch (err) {
     next(err);
+  }
+};
+
+export const getAllFilters = async (req, res, next) => {
+  try {
+    const allFilters = {};
+
+    allFilters.categories = await Category.find({}, { name: 1, _id: 1 }).lean();
+
+    allFilters.genders = GENDERS;
+    allFilters.sizes = SIZES;
+    allFilters.colors = COLORS;
+
+    res.status(200).json(allFilters);
+  } catch (error) {
+    next(error);
   }
 };
