@@ -29,6 +29,7 @@ const userSchema = new Schema(
       default: 'user'
     },
   },
+
   {
     timestamps: true,
     versionKey: false,
@@ -70,3 +71,4 @@ userSchema.methods.hasRole = function (role) {
 };
 
 export const User = model('User', userSchema);
+
