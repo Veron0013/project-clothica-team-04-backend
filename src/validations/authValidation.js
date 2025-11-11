@@ -10,6 +10,7 @@ export const loginUserSchema = Joi.object({
   phone: Joi.string().required(),
   password: Joi.string().required(),
 }).unknown(false);
+
 export const requestResetEmailSchema = {
   [Segments.BODY]: Joi.object({
     email: Joi.string().email().required(),

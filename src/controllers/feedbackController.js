@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import { isValidObjectId, Types } from "mongoose";
 import { Feedback } from "../models/feedback.js";
 import { Good } from "../models/good.js";
+import { User } from "../models/user.js";
 
 export const getFeedbacks = async (req, res, next) => {
   try {
@@ -14,21 +15,30 @@ export const getFeedbacks = async (req, res, next) => {
       filter.productId = new Types.ObjectId(`${req.query.productId}`);
     }
 
+    //console.log("f", req.query)
+    if (req.query.userId && isValidObjectId(req.query.userId)) {
+      filter.userId = new Types.ObjectId(`${req.query.userId}`);
+    }
+
     const [total, items] = await Promise.all([
       Feedback.countDocuments(filter),
       Feedback.find(filter)
-        .sort({ date: -1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .select("-__v")
-        .populate("user", "username email")
+        .populate("productId", "name")
+        .populate("userId", "name")
+        .lean(),
     ]);
+
+    const totalPages = Math.ceil(total / limit);
 
     res.json({
       page,
       limit,
       total,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
+      totalPages,
       items,
     });
   } catch (err) {
@@ -38,33 +48,30 @@ export const getFeedbacks = async (req, res, next) => {
 
 export const createFeedback = async (req, res, next) => {
   try {
-    const { goodId, rate, description } = req.body;
+    const { productId, author, rate, description, category, userId } = req.body;
 
-    const good = await Good.findById(goodId);
-    if (!good) return next(createHttpError(404, "Good not found"));
+    const product = await Good.findById(productId).select("_id");
+    if (!product) return next(createHttpError(404, "Good not found"));
 
-    const user = req.user;
-    if (!user) return next(createHttpError(401, "Unauthorized"));
+    const user = userId ? await User.findById(userId).select('_id') : null;
 
     const doc = await Feedback.create({
-      author: user.username || user.email,
-      user: user._id,
-      good: good._id,
+      productId: product._id,
+      userId: user?._id || null,
+      author,
       rate,
       description,
-      date: new Date(),
+      category,
+      approved: false,
     });
 
     await Good.updateOne(
-      { _id: good._id },
+      { _id: product._id },
       { $addToSet: { feedbacks: doc._id } }
     );
 
     res.status(201).json(doc);
   } catch (err) {
-    if (err?.code === 11000) {
-      return next(createHttpError(409, "You already reviewed this good"));
-    }
     next(err);
   }
 };
