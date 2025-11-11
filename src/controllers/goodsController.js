@@ -22,8 +22,8 @@ export const getAllGoods = async (req, res, next) => {
       toPrice,
       color,
       gender,
-      page = 1,
-      perPage = 12,
+      page,
+      perPage,
       sort,
     } = req.query;
 
@@ -66,7 +66,7 @@ export const getAllGoods = async (req, res, next) => {
     const sortStage = sortMap[sort] || { createdAt: -1 };
 
     const pageNum = Math.max(1, Number(page));
-    const perPageNum = Math.min(12, Math.max(8, Number(perPage)));
+    const perPageNum = Math.max(8, Number(perPage));
     const skip = (pageNum - 1) * perPageNum;
 
     const pipeline = goodsBasePipeline(filter, sortStage, skip, perPageNum);
