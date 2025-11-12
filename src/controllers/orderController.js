@@ -1,3 +1,4 @@
+import { ORDER_STATUS } from '../constants/orderStatus.js';
 import { Order } from '../models/order.js';
 import { feedbackPipeline } from '../utils/goodsPapeline.js';
 import createHttpError from 'http-errors';
@@ -102,6 +103,16 @@ export const updateOrderStatus = async (req, res, next) => {
     res.status(200).json(updatedOrder);
   } catch (err) {
     next(err);
+  }
+};
+
+export const getStatuses = async (req, res, next) => {
+  try {
+    const statuses = Object.values(ORDER_STATUS);
+
+    res.status(200).json(statuses);
+  } catch (error) {
+    next(error);
   }
 };
 
