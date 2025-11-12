@@ -21,6 +21,12 @@ const orderItemSchema = new Schema({
 );
 
 const orderSchema = new Schema({
+    orderNumber: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true,
+    },
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
@@ -63,5 +69,25 @@ const orderSchema = new Schema({
         versionKey: false,
     },
 );
+
+orderSchema.pre('validate', async function (next) {
+    if (this.isNew && !this.orderNumber) {
+        const currentYear = new Date().getFullYear();
+
+        const lastOrder = await this.constructor
+            .findOne({ orderNumber: new RegExp(`^${currentYear}-`) })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        let nextNumber = 1;
+        if (lastOrder) {
+            const lastNum = parseInt(lastOrder.orderNumber.split('-').pop(), 10);
+            nextNumber = lastNum + 1;
+        }
+
+        this.orderNumber = `${currentYear}-${String(nextNumber).padStart(5, '0')}`;
+    }
+    next();
+});
 
 export const Order = model('Order', orderSchema);

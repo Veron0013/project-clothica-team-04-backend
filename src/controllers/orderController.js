@@ -57,6 +57,7 @@ export const getUserOrders = async (req, res, next) => {
         $group: {
           _id: '$_id',
           userId: { $first: '$userId' },
+          orderNumber: { $first: '$orderNumber' },
           totalAmount: { $first: '$totalAmount' },
           status: { $first: '$status' },
           deliveryDetails: { $first: '$deliveryDetails' },
