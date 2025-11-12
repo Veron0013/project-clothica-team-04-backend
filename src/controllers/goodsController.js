@@ -128,6 +128,53 @@ export const getGoodById = async (req, res, next) => {
   }
 };
 
+export const getGoodsFromArray = async (req, res, next) => {
+  try {
+    const { goodIds } = req.body; // очікуємо масив id у тілі запиту
+    if (!Array.isArray(goodIds) || goodIds.length === 0) {
+      return next(createHttpError(400, 'Не надано масиву ids provided'));
+    }
+
+    // Перевірка валідності ObjectId
+    const invalidIds = goodIds.filter(id => !Types.ObjectId.isValid(id));
+    if (invalidIds.length) {
+      return next(createHttpError(400, `Не правильний ID: ${invalidIds.join(', ')}`));
+    }
+
+    const objectIds = goodIds.map(id => new Types.ObjectId(`${id}`));
+
+    const pipeline = [
+      { $match: { _id: { $in: objectIds } } },
+      ...feedbackPipeline('$_id'),
+      ...categoryLookupPipeline,
+      {
+        $project: {
+          name: 1,
+          price: '$price.value',
+          currency: '$price.currency',
+          color: 1,
+          size: 1,
+          gender: 1,
+          image: 1,
+          category: 1,
+          characteristics: 1,
+          prevDescription: 1,
+          feedbackCount: 1,
+          averageRating: 1,
+        },
+      },
+    ];
+
+    const goods = await Good.aggregate(pipeline);
+
+    if (!goods.length) return next(createHttpError(404, 'Товарів не знайдено'));
+
+    res.status(200).json(goods);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getAllFilters = async (req, res, next) => {
   try {
     const allFilters = {};
