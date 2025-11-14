@@ -63,6 +63,10 @@ const orderSchema = new Schema({
         default: ORDER_STATUS.PENDING,
         index: true,
     },
+    comment: {
+        type: String,
+        trim: true
+    },
 },
     {
         timestamps: true,
