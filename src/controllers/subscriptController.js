@@ -22,8 +22,6 @@ export const createSubscription = async (req, res) => {
 };
 
 export const submitSubscription = async (req, res) => {
-
-  // шукаю всіх підписників
   const subscribers = await Subscription.find({}, 'email');
   if (!subscribers.length) {
     return res.status(404).json({ message: 'Немає підписників!!!' });
@@ -33,8 +31,7 @@ export const submitSubscription = async (req, res) => {
   const templateSource = await fs.readFile(templatePath, 'utf-8');
   const template = handlebars.compile(templateSource);
 
-  //  Посилання на сайт або  в .env
-  const siteLink = process.env.SITE_URL || 'https://clothica.com';
+  const siteLink = process.env.SITE_URL || 'https://clothica-team-04-frontend.vercel.app';
 
   for (const subscriber of subscribers) {
     const html = template({
@@ -49,7 +46,7 @@ export const submitSubscription = async (req, res) => {
         html,
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw createHttpError(500, error);
     }
   }

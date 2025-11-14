@@ -1,0 +1,272 @@
+paths:
+  /goods:
+    get:
+      summary: Отримати список товарів (фільтри, пагінація, сортування)
+      tags: [Goods]
+      parameters:
+        - in: query
+          name: category
+          description: ID категорії
+          schema:
+            type: string
+            example: '67b18d28b112cd5ae689a1f9'
+
+        - in: query
+          name: sizes
+          description: Розміри (CSV)
+          schema:
+            type: string
+            example: 'S,M,L'
+
+        - in: query
+          name: fromPrice
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1999999
+            default: 1
+            example: 10
+
+        - in: query
+          name: toPrice
+          schema:
+            type: integer
+            minimum: 2
+            maximum: 2000000
+            default: 20000
+            example: 500
+
+        - in: query
+          name: color
+          schema:
+            type: string
+            example: 'black'
+
+        - in: query
+          name: gender
+          description: Стать (CSV або масив)
+          schema:
+            oneOf:
+              - type: string
+                example: 'men,women'
+              - type: array
+                items:
+                  type: string
+                  example: 'men'
+
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+            example: 1
+
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 12
+            example: 12
+
+        - in: query
+          name: sort
+          description: Поле та порядок сортування
+          schema:
+            type: string
+            enum: [price_asc, price_desc, name_asc, name_desc]
+            example: price_asc
+
+      responses:
+        '200':
+          description: Список товарів
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodsPaginatedResponse'
+        '400':
+          description: Невалідні фільтри
+        '500':
+          description: Серверна помилка
+
+  /goods/from-array:
+    post:
+      summary: Отримати товари з масиву IDs
+      tags: [Goods]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [goodIds]
+              properties:
+                goodIds:
+                  type: array
+                  items:
+                    type: string
+                    example: '67b1a226be61af951cd19ed9'
+      responses:
+        '200':
+          description: Знайдені товари
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GoodDetails'
+        '400':
+          description: Масив ID не надано або некоректний
+        '404':
+          description: Товарів не знайдено
+        '500':
+          description: Серверна помилка
+
+  /goods/all-filters:
+    get:
+      summary: Отримати всі фільтри товарів
+      tags: [Goods]
+      responses:
+        '200':
+          description: Усі фільтри
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllGoodsFilters'
+        '500':
+          description: Серверна помилка
+
+  /goods/{goodId}:
+    get:
+      summary: Отримати товар за ID
+      tags: [Goods]
+      parameters:
+        - in: path
+          name: goodId
+          required: true
+          description: ID товару
+          schema:
+            type: string
+            example: '67b18f31b7361f2323bade11'
+      responses:
+        '200':
+          description: Знайдений товар
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodDetails'
+        '400':
+          description: Невірний формат ID
+        '404':
+          description: Товар не знайдено
+        '500':
+          description: Серверна помилка
+
+components:
+  schemas:
+    GoodBase:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Black hoodie'
+        price:
+          type: number
+          example: 899
+        currency:
+          type: string
+          example: 'UAH'
+        color:
+          type: string
+          example: 'black'
+        size:
+          type: array
+          items:
+            type: string
+            example: 'M'
+        gender:
+          type: string
+          example: 'men'
+        image:
+          type: array
+          items:
+            type: string
+            example: 'https://cdn.site/image.jpg'
+        category:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: '67b18d28b112cd5ae689a1f9'
+            name:
+              type: string
+              example: 'Hoodies'
+
+    GoodDetails:
+      allOf:
+        - $ref: '#/components/schemas/GoodBase'
+        - type: object
+          properties:
+            characteristics:
+              type: object
+              example:
+                material: 'cotton'
+                madeIn: 'Ukraine'
+            prevDescription:
+              type: string
+              example: 'Попередній опис товару'
+            feedbackCount:
+              type: integer
+              example: 12
+            averageRating:
+              type: number
+              example: 4.5
+
+    GoodsPaginatedResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 12
+        totalGoods:
+          type: integer
+          example: 240
+        totalPages:
+          type: integer
+          example: 20
+        goods:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoodBase'
+
+    AllGoodsFilters:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                example: '67b18d28b112cd5ae689a1f9'
+              name:
+                type: string
+                example: 'Jackets'
+        genders:
+          type: array
+          items:
+            type: string
+          example: ['men', 'women']
+        sizes:
+          type: array
+          items:
+            type: string
+          example: ['XS', 'S', 'M', 'L', 'XL']
+        colors:
+          type: array
+          items:
+            type: string
+          example: ['black', 'white', 'red']

@@ -1,0 +1,70 @@
+paths:
+  /top-rated:
+    get:
+      summary: Отримати список топових товарів
+      tags: [Top Rated]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Номер сторінки
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 6
+          description: Кількість елементів на сторінці
+      responses:
+        '200':
+          description: Список найкращих товарів
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                    example: 1
+                  limit:
+                    type: integer
+                    example: 6
+                  total:
+                    type: integer
+                    example: 25
+                  totalPages:
+                    type: integer
+                    example: 5
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TopRatedItem'
+        '400':
+          description: Невірні параметри запиту
+
+    post:
+      summary: Додати товар у список топових
+      tags: [Top Rated]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopRatedCreateInput'
+      responses:
+        '201':
+          description: Товар додано у топ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopRated'
+        '404':
+          description: Товар не знайдено
+        '409':
+          description: Товар вже існує у списку топових
+        '400':
+          description: Невірні дані

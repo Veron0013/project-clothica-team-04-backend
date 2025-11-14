@@ -1,0 +1,177 @@
+paths:
+  /feedbacks:
+    get:
+      summary: Отримати список відгуків (із фільтрами та пагінацією)
+      tags: [Feedbacks]
+      parameters:
+        - in: query
+          name: productId
+          description: ID товару (для фільтрації)
+          required: false
+          schema:
+            type: string
+            example: '67a2c112ab5d99d8e38b99b1'
+        - in: query
+          name: userId
+          description: ID користувача (для фільтрації)
+          required: false
+          schema:
+            type: string
+            example: '67a29f6412736b87fc197acd'
+        - in: query
+          name: page
+          description: Номер сторінки
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - in: query
+          name: limit
+          description: Кількість елементів (1-24)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 6
+            example: 6
+      responses:
+        '200':
+          description: Список відгуків
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackPaginatedResponse'
+        '400':
+          description: Невалідні параметри
+        '404':
+          description: Сторінки не існує
+        '500':
+          description: Помилка сервера
+
+    post:
+      summary: Створити новий відгук
+      tags: [Feedbacks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeedbackInput'
+      responses:
+        '201':
+          description: Відгук створено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '400':
+          description: Невалідні дані
+        '404':
+          description: Товар не знайдено
+        '500':
+          description: Помилка сервера
+
+components:
+  schemas:
+    Feedback:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '67a3b412f02c1fd1fca3b145'
+        author:
+          type: string
+          example: 'John'
+        description:
+          type: string
+          example: 'Дуже гарна якість!'
+        rate:
+          type: number
+          example: 4.5
+        category:
+          type: string
+          nullable: true
+          example: 'women'
+        approved:
+          type: boolean
+          example: false
+        productId:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: '67a2c112ab5d99d8e38b99b1'
+            name:
+              type: string
+              example: 'Light blue jacket'
+        userId:
+          type: object
+          nullable: true
+          properties:
+            _id:
+              type: string
+              example: '67a29f6412736b87fc197acd'
+            name:
+              type: string
+              example: 'Alice'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFeedbackInput:
+      type: object
+      required:
+        - author
+        - description
+        - rate
+        - productId
+      properties:
+        author:
+          type: string
+          minLength: 2
+          maxLength: 53
+          example: 'John Doe'
+        description:
+          type: string
+          minLength: 3
+          maxLength: 2000
+          example: 'Товар дуже сподобався!'
+        rate:
+          type: number
+          example: 4.5
+          enum: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+        category:
+          type: string
+          nullable: true
+          example: 'women'
+        productId:
+          type: string
+          example: '67a2c112ab5d99d8e38b99b1'
+        userId:
+          type: string
+          nullable: true
+          example: '67a29f6412736b87fc197acd'
+
+    FeedbackPaginatedResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 6
+        total:
+          type: integer
+          example: 42
+        totalPages:
+          type: integer
+          example: 7
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feedback'

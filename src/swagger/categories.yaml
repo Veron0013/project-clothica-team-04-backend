@@ -1,0 +1,85 @@
+paths:
+  /categories:
+    get:
+      summary: Отримати список категорій з пагінацією
+      tags: [Categories]
+      parameters:
+        - in: query
+          name: page
+          description: Номер сторінки
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - in: query
+          name: limit
+          description: Кількість елементів на сторінці (4:6)
+          required: false
+          schema:
+            type: integer
+            minimum: 4
+            maximum: 6
+            default: 6
+            example: 6
+      responses:
+        '200':
+          description: Список категорій з метаданими пагінації
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesPaginatedResponse'
+        '404':
+          description: Сторінка не знайдена
+        '400':
+          description: Невалідні параметри запиту
+
+  /categories/all:
+    get:
+      summary: Отримати повний список категорій (без пагінації)
+      tags: [Categories]
+      responses:
+        '200':
+          description: Повний список категорій
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '500':
+          description: Помилка сервера
+
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'Жіночий одяг'
+        image:
+          type: string
+          nullable: true
+          example: 'https://example.com/category.jpg'
+
+    CategoriesPaginatedResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 6
+        totalCategories:
+          type: integer
+          example: 25
+        totalPages:
+          type: integer
+          example: 5
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
