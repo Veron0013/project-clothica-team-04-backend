@@ -28,7 +28,18 @@ export const getAllGoods = async (req, res, next) => {
       page,
       limit,
       sort,
+      search,
     } = req.query;
+
+    if (search) {
+      if (search.length > 3) {
+        // text-indexed search
+        filter.$text = { $search: search };
+      } else {
+        // fast anchored prefix search (індекс теж може використовуватись)
+        filter.name = { $regex: `^${search}`, $options: "i" };
+      }
+    }
 
     //const pageNum = Math.max(1, Number(page) || 1);
     //const limitNum = Math.min(12, Math.max(8, Number(limit) || 12));
