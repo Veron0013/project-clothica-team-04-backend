@@ -1,0 +1,247 @@
+paths:
+  /orders:
+    post:
+      summary: Створити замовлення (авторизований користувач)
+      tags: [Orders]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderInput'
+      responses:
+        '201':
+          description: Замовлення створене
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Невалідні дані
+        '401':
+          description: Неавторизовано
+
+  /orders/guest:
+    post:
+      summary: Створити замовлення як гість
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderInput'
+      responses:
+        '201':
+          description: Замовлення створене
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Невалідні дані
+
+  /orders:
+    get:
+      summary: Отримати всі замовлення поточного користувача
+      tags: [Orders]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Список замовлень користувача
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserOrder'
+        '401':
+          description: Неавторизовано
+
+  /orders/all:
+    get:
+      summary: Отримати всі замовлення (адмін)
+      tags: [Orders]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Повний список замовлень
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserOrder'
+        '401':
+          description: Неавторизовано
+        '403':
+          description: Доступ заборонений
+
+  /orders/all-statuses:
+    get:
+      summary: Отримати список статусів замовлень
+      tags: [Orders]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Список статусів
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /orders/{orderId}/status:
+    patch:
+      summary: Оновити статус замовлення
+      tags: [Orders]
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+            example: "67b19ebbb91846840cc24b17"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: shipped
+      responses:
+        '200':
+          description: Статус оновлено
+        '400':
+          description: Невалідні дані
+        '401':
+          description: Неавторизовано
+        '403':
+          description: Доступ заборонений
+        '404':
+          description: Замовлення не знайдено
+
+components:
+
+  schemas:
+
+    CreateOrderInput:
+      type: object
+      required: [items, totalAmount, deliveryDetails]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [productId, quantity, price]
+            properties:
+              productId:
+                type: string
+                example: "67b1a226be61af951cd19ed9"
+              quantity:
+                type: integer
+                example: 2
+              price:
+                type: number
+                example: 499
+        totalAmount:
+          type: number
+          example: 998
+        deliveryDetails:
+          type: object
+          required: [fullName, phone, address]
+          properties:
+            fullName:
+              type: string
+              example: "John Doe"
+            phone:
+              type: string
+              example: "+380991234567"
+            address:
+              type: string
+              example: "Kyiv, вул. Сонячна 15"
+
+    Order:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "67b19ebbb91846840cc24b17"
+        userId:
+          type: string
+          nullable: true
+          example: "67b18d28b112cd5ae689a1f9"
+        orderNumber:
+          type: string
+          example: "ORD-000123"
+        totalAmount:
+          type: number
+          example: 998
+        status:
+          type: string
+          example: "pending"
+        deliveryDetails:
+          $ref: "#/components/schemas/DeliveryDetails"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-02-13T13:12:01Z"
+
+    DeliveryDetails:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+
+    OrderItem:
+      type: object
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        currency:
+          type: string
+        image:
+          type: array
+          items:
+            type: string
+        quantity:
+          type: integer
+        totalPrice:
+          type: number
+        feedbackCount:
+          type: integer
+        averageRating:
+          type: number
+
+    UserOrder:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderItem"

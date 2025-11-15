@@ -1,0 +1,116 @@
+paths:
+  /auth/register:
+    post:
+      summary: Реєстрація нового користувача
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: Користувач успішно зареєстрований
+        '400':
+          description: Помилка валідації або телефон зайнятий
+
+  /auth/login:
+    post:
+      summary: Вхід користувача
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Успішний вхід
+        '401':
+          description: Невірний телефон або пароль
+
+  /auth/logout:
+    post:
+      summary: Вихід користувача
+      tags: [Auth]
+      responses:
+        '204':
+          description: Вихід успішний (cookies очищені)
+
+  /auth/refresh:
+    post:
+      summary: Оновлення токена
+      tags: [Auth]
+      parameters:
+        - in: cookie
+          name: sessionId
+          required: true
+          schema:
+            type: string
+        - in: cookie
+          name: refreshToken
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Нову сесію згенеровано
+        '400':
+          description: Невалідні або прострочені cookies
+        '401':
+          description: Сесія не знайдена
+
+  /auth/session:
+    get:
+      summary: Отримати поточну сесію
+      tags: [Auth]
+      parameters:
+        - in: cookie
+          name: accessToken
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Дані користувача
+        '401':
+          description: Неавторизований доступ
+
+components:
+  schemas:
+    RegisterInput:
+      type: object
+      required:
+        - phone
+        - password
+      properties:
+        phone:
+          type: string
+          example: '+380991234567'
+        password:
+          type: string
+          minLength: 8
+          example: 'mypassword123'
+        name:
+          type: string
+          nullable: true
+          example: 'John'
+
+    LoginInput:
+      type: object
+      required:
+        - phone
+        - password
+      properties:
+        phone:
+          type: string
+        password:
+          type: string
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken

@@ -1,0 +1,80 @@
+paths:
+  /subscriptions:
+    post:
+      summary: Створити підписку (email)
+      tags: [Subscriptions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInput'
+      responses:
+        '201':
+          description: Підписка успішно створена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Підписка успішно створена.'
+                  subscription:
+                    $ref: '#/components/schemas/Subscription'
+        '409':
+          description: Така поштова адреса вже має підписку
+        '400':
+          description: Невірні дані
+
+  /submit-subscription:
+    post:
+      summary: Надіслати розсилку всім підписникам (тільки адмін)
+      tags: [Subscriptions]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Розсилка успішно виконана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Електронні листи надіслані для 120 підписників!'
+        '404':
+          description: Немає підписників
+        '401':
+          description: Неавторизовано
+        '403':
+          description: Доступ дозволено лише адміну
+        '500':
+          description: Помилка відправки листів
+
+components:
+  schemas:
+    SubscriptionInput:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'test@example.com'
+
+    Subscription:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '67b1de0f59c91b35d71dd3cb'
+        email:
+          type: string
+          example: 'test@example.com'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-02-13T14:22:15Z'

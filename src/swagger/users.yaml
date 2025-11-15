@@ -1,0 +1,96 @@
+paths:
+  /users/me:
+    get:
+      summary: Отримати дані поточного користувача
+      tags: [Users]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Дані користувача
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Неавторизований доступ
+        '404':
+          description: Користувача не знайдено
+
+    patch:
+      summary: Оновити профіль користувача
+      tags: [Users]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserInput'
+      responses:
+        '200':
+          description: Дані користувача оновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Невалідні дані
+        '401':
+          description: Неавторизований доступ
+        '404':
+          description: Користувача не знайдено
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '67a1db1412736b87fc197a3d'
+        name:
+          type: string
+          example: 'John'
+        lastName:
+          type: string
+          example: 'Doe'
+        phone:
+          type: string
+          example: '+380991234567'
+        city:
+          type: string
+          example: 'Kyiv'
+        novaPoshtaBranch:
+          type: string
+          example: 'Відділення №5'
+        email:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpdateUserInput:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'John'
+        lastName:
+          type: string
+          example: 'Doe'
+        phone:
+          type: string
+          example: '+380991234567'
+        city:
+          type: string
+          example: 'Lviv'
+        novaPoshtaBranch:
+          type: string
+          example: 'Відділення №12'
+      description: Поля, які можна оновити
