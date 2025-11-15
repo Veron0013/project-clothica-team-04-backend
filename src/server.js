@@ -21,13 +21,11 @@ import topRatedGoodsRouter from './routes/topRatedGoodRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3030;
-const API_URL = process.env.SITE_URL || 'http://localhost:3030';
 
 app.use(express.json());
 app.use(
   cors({
-    origin: ['https://clothica-team-04-frontend.vercel.app',
-      'http://localhost:3000'],
+    origin: ['https://clothica-team-04-frontend.vercel.app', 'http://localhost:3000'],
     credentials: true,
   }),
 );
@@ -57,5 +55,5 @@ await connectMongoDB();
 // Запуск сервера
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Документація API доступна за адресою: ${API_URL}/api-docs`);
+  console.log(`Документація API доступна за адресою: http://localhost:${PORT}/api-docs`);
 });
