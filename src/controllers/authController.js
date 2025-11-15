@@ -119,15 +119,19 @@ export const refreshUserSession = async (req, res, next) => {
 
 export const getSession = async (req, res, next) => {
 
-  //res.set('Cache-Control', 'no-store');
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
 
   try {
     const { accessToken } = req.cookies || {};
 
     if (accessToken) {
       const session = await Session.findOne({ accessToken });
-
-      if (session) return res.status(200).json({ message: 'OK' });
+      if (session) {
+        return res.status(200).json({ message: 'OK' });
+      }
     }
     await refreshUserSession(req, res, next);
   } catch (error) {
