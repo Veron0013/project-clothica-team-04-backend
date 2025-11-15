@@ -121,6 +121,7 @@ export const getGoodById = async (req, res, next) => {
           gender: 1,
           image: 1,
           category: 1,
+          description: 1,
           characteristics: 1,
           prevDescription: 1,
           feedbackCount: 1,
