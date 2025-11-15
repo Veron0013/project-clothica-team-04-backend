@@ -16,7 +16,7 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import subscriptRoutes from './routes/subscriptRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import topRatedGoodsRouter from './routes/topRatedGoodRoutes.js';
-import { swaggerSpec, swaggerUi } from './swagger.js';
+
 
 const app = express();
 const PORT = process.env.PORT ?? 3030;
@@ -34,7 +34,6 @@ app.use(
 app.use(cookieParser());
 
 app.use(logger);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(categoriesRoutes);
@@ -55,5 +54,4 @@ await connectMongoDB();
 // Запуск сервера
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
 });
