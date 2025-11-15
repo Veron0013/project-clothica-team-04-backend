@@ -37,4 +37,5 @@ export const checkAdmin = (req, res, next) => {
     return res.status(403).json({ message: 'Доступ заборонено! Лише для адміністраторів.' });
   }
   next();
+
 };
