@@ -84,7 +84,9 @@ const clearAuthCookies = (res) => {
 };
 
 export const refreshUserSession = async (req, res, next) => {
+
   const { sessionId, refreshToken } = req.cookies || {};
+
   if (!sessionId || !refreshToken) {
     clearAuthCookies(res);
     return next(createHttpError(400, 'Invalid or expired refresh token'));
@@ -116,6 +118,9 @@ export const refreshUserSession = async (req, res, next) => {
 };
 
 export const getSession = async (req, res, next) => {
+
+  res.set('Cache-Control', 'no-store');
+
   if (req.cookies?.accessToken) {
     return res.status(200).json({ message: 'OK' });
   }
