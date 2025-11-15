@@ -11,7 +11,7 @@ const goodsDocs = YAML.load(path.join(__dirname, 'goods.yaml'));
 const ordersDocs = YAML.load(path.join(__dirname, 'order.yaml'));
 const feedbacksDocs = YAML.load(path.join(__dirname, 'feedbacks.yaml'));
 const categoriesDocs = YAML.load(path.join(__dirname, 'categories.yaml'));
-const topRoatedDocs = YAML.load(path.join(__dirname, 'top-rated.yaml'));
+const topRatedDocs = YAML.load(path.join(__dirname, 'top-rated.yaml'));
 const usersDocs = YAML.load(path.join(__dirname, 'users.yaml'));
 const subscriptionsDocs = YAML.load(path.join(__dirname, 'subscriptions.yaml'));
 
@@ -30,11 +30,6 @@ const swaggerDefinition = {
   },
 
   servers: [
-    {
-      url: 'https://clothica-team-04-frontend.vercel.app/v1',
-      description: 'Production сервер',
-    },
-
     {
       url: 'http://localhost:3030/api/v1',
       description: 'Локальний сервер розробки',
@@ -63,7 +58,7 @@ const swaggerDefinition = {
     ...ordersDocs.paths,
     ...feedbacksDocs.paths,
     ...categoriesDocs.paths,
-    ...topRoatedDocs.paths,
+    ...topRatedDocs.paths,
     ...usersDocs.paths,
     ...subscriptionsDocs.paths,
   },
@@ -75,7 +70,7 @@ const swaggerDefinition = {
       ...(ordersDocs.components?.schemas || {}),
       ...(feedbacksDocs.components?.schemas || {}),
       ...(categoriesDocs.components?.schemas || {}),
-      ...(topRoatedDocs.components?.schemas || {}),
+      ...(topRatedDocs.components?.schemas || {}),
       ...(usersDocs.components?.schemas || {}),
       ...(subscriptionsDocs.components?.schemas || {}),
     },
@@ -85,7 +80,7 @@ const swaggerDefinition = {
       ...(ordersDocs.components?.securitySchemes || {}),
       ...(feedbacksDocs.components?.securitySchemes || {}),
       ...(categoriesDocs.components?.securitySchemes || {}),
-      ...(topRoatedDocs.components?.securitySchemes || {}),
+      ...(topRatedDocs.components?.securitySchemes || {}),
       ...(usersDocs.components?.securitySchemes || {}),
       ...(subscriptionsDocs.components?.securitySchemes || {}),
     },
