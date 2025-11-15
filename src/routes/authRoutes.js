@@ -9,6 +9,6 @@ router.post('/auth/register', celebrate({ [Segments.BODY]: registerUserSchema },
 router.post('/auth/login', celebrate({ [Segments.BODY]: loginUserSchema }, { abortEarly: false }), loginUser);
 router.post('/auth/logout', logoutUser);
 router.post('/auth/refresh', refreshUserSession);
-router.get('/auth/me', getSession);
+router.get('/auth/session', getSession);
 
 export default router;

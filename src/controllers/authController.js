@@ -26,7 +26,6 @@ export const registerUser = async (req, res) => {
   setSessionCookies(res, newSession);
 
   res.status(201).json(user);
-
 };
 
 export const loginUser = async (req, res, next) => {
@@ -84,7 +83,6 @@ const clearAuthCookies = (res) => {
 };
 
 export const refreshUserSession = async (req, res, next) => {
-
   const { sessionId, refreshToken } = req.cookies || {};
 
   if (!sessionId || !refreshToken) {
@@ -118,13 +116,33 @@ export const refreshUserSession = async (req, res, next) => {
 };
 
 export const getSession = async (req, res, next) => {
+  try {
+    const { accessToken, sessionId, refreshToken } = req.cookies || {};
+    const now = new Date();
 
-  res.set('Cache-Control', 'no-store');
+    if (accessToken) {
+      const session = await Session.findOne({ accessToken });
 
-  if (req.cookies?.accessToken) {
-    return res.status(200).json({ message: 'OK' });
+      if (session && new Date(session.accessTokenValidUntil) > now) {
+        const user = await User.findById(session.userId).select('-password').lean();
+
+        if (!user) {
+          clearAuthCookies(res);
+          return next(createHttpError(401, 'User not found'));
+        }
+
+        return res.status(200).json({ user });
+      }
+    }
+
+    if (sessionId && refreshToken) {
+      return refreshUserSession(req, res, next);
+    }
+    clearAuthCookies(res);
+    return next(createHttpError(401, 'Not authenticated'));
+  } catch (error) {
+    return next(error);
   }
-  await refreshUserSession(req, res, next);
 };
 
 export const requestResetEmail = async (req, res) => {
