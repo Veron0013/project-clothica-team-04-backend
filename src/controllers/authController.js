@@ -32,19 +32,19 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res, next) => {
   try {
     const { phone: rawPhone, password } = req.body ?? {};
-    if (!rawPhone || !password) return next(createHttpError(400, 'Phone and password required'));
+    if (!rawPhone || !password) throw createHttpError(400, 'Phone and password required');
 
     const phone = normalizePhone(rawPhone);
-    if (!phone) return next(createHttpError(400, 'Invalid phone number'));
+    if (!phone) throw createHttpError(400, 'Invalid phone number');
 
     const user = await User.findOne({ phone }).select('+password');
-    if (!user) return next(createHttpError(401, 'Invalid phone or password'));
+    if (!user) throw createHttpError(401, 'Invalid phone or password');
 
     const isValid = await (typeof user.comparePassword === 'function'
       ? user.comparePassword(password)
       : bcrypt.compare(password, user.password));
 
-    if (!isValid) return next(createHttpError(401, 'Invalid phone or password'));
+    if (!isValid) throw createHttpError(401, 'Invalid phone or password');
 
     await Session.deleteOne({ userId: user._id });
 
@@ -81,25 +81,25 @@ export const logoutUser = async (req, res) => {
   res.status(204).send();
 };
 
-export const refreshUserSession = async (req, res, next) => {
+export const refreshUserSession = async (req, res) => {
 
   const { sessionId, refreshToken } = req.cookies || {};
 
   if (!sessionId || !refreshToken) {
     clearAuthCookies(res);
-    return next(createHttpError(400, 'Invalid or expired refresh token'));
+    throw createHttpError(400, 'Invalid or expired refresh token');
   }
   //console.log("sessionId", sessionId, refreshToken)
   const session = await Session.findOne({ _id: sessionId, refreshToken });
   if (!session) {
     clearAuthCookies(res);
-    return next(createHttpError(401, 'Session not found'));
+    throw createHttpError(401, 'Session not found');
   }
 
   if (new Date() > new Date(session.refreshTokenValidUntil)) {
     await Session.deleteOne({ _id: sessionId, refreshToken });
     clearAuthCookies(res);
-    return next(createHttpError(401, 'Token expired'));
+    throw createHttpError(401, 'Token expired');
   }
 
   await Session.deleteOne({ _id: sessionId, refreshToken });
@@ -109,7 +109,7 @@ export const refreshUserSession = async (req, res, next) => {
   const user = await User.findById(session.userId).select('-password').lean();
   if (!user) {
     clearAuthCookies(res);
-    return next(createHttpError(401, 'User not found'));
+    throw createHttpError(401, 'User not found');
   }
 
   return res.json({ user });

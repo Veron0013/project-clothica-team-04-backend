@@ -105,7 +105,7 @@ export const getAllGoods = async (req, res, next) => {
 export const getGoodById = async (req, res, next) => {
   try {
     const { goodId } = req.params;
-    if (!Types.ObjectId.isValid(goodId)) return next(createHttpError(400, 'Invalid good id'));
+    if (!Types.ObjectId.isValid(goodId)) throw createHttpError(400, 'Invalid good id');
 
     const pipeline = [
       { $match: { _id: new Types.ObjectId(goodId) } },
@@ -132,7 +132,7 @@ export const getGoodById = async (req, res, next) => {
 
     //[] бо повертає масив
     const [good] = await Good.aggregate(pipeline);
-    if (!good) return next(createHttpError(404, 'Good not found'));
+    if (!good) throw createHttpError(404, 'Good not found');
 
     res.status(200).json(good);
   } catch (err) {
@@ -144,13 +144,13 @@ export const getGoodsFromArray = async (req, res, next) => {
   try {
     const { goodIds } = req.body; // очікуємо масив id у тілі запиту
     if (!Array.isArray(goodIds) || goodIds.length === 0) {
-      return next(createHttpError(400, 'Не надано масиву ids provided'));
+      throw createHttpError(400, 'Не надано масиву ids provided');
     }
 
     // Перевірка валідності ObjectId
     const invalidIds = goodIds.filter(id => !Types.ObjectId.isValid(id));
     if (invalidIds.length) {
-      return next(createHttpError(400, `Не правильний ID: ${invalidIds.join(', ')}`));
+      throw createHttpError(400, `Не правильний ID: ${invalidIds.join(', ')}`);
     }
 
     const objectIds = goodIds.map(id => new Types.ObjectId(`${id}`));
@@ -179,7 +179,7 @@ export const getGoodsFromArray = async (req, res, next) => {
 
     const goods = await Good.aggregate(pipeline);
 
-    if (!goods.length) return next(createHttpError(404, 'Товарів не знайдено'));
+    if (!goods.length) throw createHttpError(404, 'Товарів не знайдено');
 
     res.status(200).json(goods);
   } catch (err) {

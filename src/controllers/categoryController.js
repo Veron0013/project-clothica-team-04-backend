@@ -10,7 +10,7 @@ export const getAllCategories = async (req, res, next) => {
     const totalCategories = await Category.countDocuments();
     const totalPages = Math.max(1, Math.ceil(totalCategories / limit));
     if (totalCategories > 0 && page > totalPages) {
-      return next(createHttpError(404, 'Page not found'));
+      throw createHttpError(404, 'Page not found');
     }
 
     const categories = await Category.aggregate([

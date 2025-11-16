@@ -51,7 +51,7 @@ export const createFeedback = async (req, res, next) => {
     const { productId, author, rate, description, category, userId } = req.body;
 
     const product = await Good.findById(productId).select("_id");
-    if (!product) return next(createHttpError(404, "Good not found"));
+    if (!product) throw createHttpError(404, "Good not found");
 
     const user = userId ? await User.findById(userId).select('_id') : null;
 
