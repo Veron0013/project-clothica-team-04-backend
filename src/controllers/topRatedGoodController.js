@@ -69,7 +69,7 @@ export const getTopRatedGoods_rw = async (req, res, next) => {
 export const getTopRatedGoods = async (req, res, next) => {
 	try {
 		const page = Math.max(Number(req.query.page) || 1, 1);
-		const limit = Math.min(Number(req.query.limit) || 6, 6);
+		const limit = Math.min(Number(req.query.limit) || 6, 20);
 		const skip = (page - 1) * limit;
 
 		const pipeline = [
