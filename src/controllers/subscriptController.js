@@ -15,6 +15,43 @@ export const createSubscription = async (req, res) => {
   }
 
   const subscription = await Subscription.create({ email });
+  //////////////////////////////////////////////
+
+  // --- ДОДАНО КОД ДЛЯ НАДСИЛАННЯ ПІДТВЕРДЖУВАЛЬНОГО ЛИСТА ---
+
+  try {
+    // 1. Вказуємо шлях до шаблону підтвердження
+    const templatePath = path.resolve('src/templates/subscription-confirmation.html');
+
+    // 2. Читаємо HTML-шаблон
+    const templateSource = await fs.readFile(templatePath, 'utf-8');
+
+    // 3. Компілюємо шаблон за допомогою Handlebars
+    const template = handlebars.compile(templateSource);
+
+    // 4. Компілюємо HTML-вміст. Передаємо динамічні дані (наприклад, email)
+    const html = template({
+      email: email,
+      // Додайте будь-які інші змінні, необхідні для цього шаблону (наприклад, посилання на відписку)
+    });
+
+    // 5. Надсилаємо лист
+    await sendMail({
+      from: process.env.SMTP_FROM,
+      to: email, // Надсилаємо лише новому підписнику
+      subject: '✅ Підтвердження підписки на розсилку Clothica',
+      html,
+    });
+  } catch (error) {
+    // Якщо надсилання листа не вдалося, реєструємо помилку, але НЕ зупиняємо створення підписки.
+    // Користувач все одно підписаний, але листа не отримав.
+    console.error('Помилка при надсиланні листа-підтвердження:', error);
+    // Можна додати логіку для повторної спроби або сповіщення адміністратора
+  }
+
+  // -----------------------------------------------------------------------
+
+  //////////////////////////////////////////
   res.status(201).json({
     message: 'Підписка успішно створена.',
     subscription,
