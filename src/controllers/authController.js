@@ -118,6 +118,11 @@ export const refreshUserSession = async (req, res) => {
 };
 
 export const getSession = async (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+
   try {
     const { accessToken } = req.cookies || {};
 
