@@ -187,15 +187,40 @@ export const getGoodsFromArray = async (req, res, next) => {
   }
 };
 
+async function getPriceRange() {
+  const result = await Good.aggregate([
+    {
+      $group: {
+        _id: null,
+        fromPrice: { $min: '$price.value' },
+        toPrice: { $max: '$price.value' },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        fromPrice: 1,
+        toPrice: 1,
+      },
+    },
+  ]);
+
+  return result[0] || { fromPrice: 1, toPrice: 10000 };
+}
+
+
 export const getAllFilters = async (req, res, next) => {
   try {
     const allFilters = {};
+    const categories = await Category.find({}, { name: 1, _id: 1 }).lean();
+    const prices = await getPriceRange();
 
-    allFilters.categories = await Category.find({}, { name: 1, _id: 1 }).lean();
-
+    allFilters.categories = categories;
     allFilters.genders = GENDERS;
     allFilters.sizes = SIZES;
     allFilters.colors = COLORS;
+    allFilters.fromPrice = prices.fromPrice;
+    allFilters.toPrice = prices.toPrice;
 
     res.status(200).json(allFilters);
   } catch (error) {
