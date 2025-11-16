@@ -53,7 +53,7 @@ export const loginUser = async (req, res, next) => {
 
     const safe = user.toObject();
     delete safe.password;
-    res.json({ user: safe });
+    res.json(user);
   } catch (e) {
     next(e);
   }
