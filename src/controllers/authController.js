@@ -89,7 +89,7 @@ export const refreshUserSession = async (req, res, next) => {
     clearAuthCookies(res);
     return next(createHttpError(400, 'Invalid or expired refresh token'));
   }
-
+  //console.log("sessionId", sessionId, refreshToken)
   const session = await Session.findOne({ _id: sessionId, refreshToken });
   if (!session) {
     clearAuthCookies(res);
@@ -116,12 +116,6 @@ export const refreshUserSession = async (req, res, next) => {
 };
 
 export const getSession = async (req, res, next) => {
-
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  res.set('Surrogate-Control', 'no-store');
-
   try {
     const { accessToken } = req.cookies || {};
 
