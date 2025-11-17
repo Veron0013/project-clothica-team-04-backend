@@ -5,7 +5,7 @@ import createHttpError from 'http-errors';
 
 export const createOrder = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.userId;
 
     const newOrder = await Order.create({
       ...req.body,

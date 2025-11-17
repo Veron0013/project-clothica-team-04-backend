@@ -17,6 +17,7 @@ const itemSchema = Joi.object({
 
 export const createOrderSchema = {
     [Segments.BODY]: Joi.object({
+        userId: Joi.string().custom(isValidOblectId),
         items: Joi.array().items(itemSchema).min(1).required(),
         totalAmount: Joi.number().min(0.01).required(),
         deliveryDetails: Joi.object({
@@ -24,6 +25,7 @@ export const createOrderSchema = {
             phone: Joi.string().min(10).required(),
             address: Joi.string().min(10).required(),
         }).required(),
+        comment: Joi.string(),
     }),
 };
 
