@@ -39,7 +39,7 @@ export const getAllGoods = async (req, res, next) => {
     const filter = {}
 
     if (search) {
-      if (search.length > 3) {
+      if (search.length > 5) {
         // text-indexed search
         filter.$text = { $search: search };
       } else {

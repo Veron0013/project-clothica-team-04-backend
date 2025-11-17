@@ -41,32 +41,30 @@ export const feedbackPipeline = (productIdField = '$_id') => [
 	{ $project: { approvedFeedbacks: 0 } },
 ];
 
-/**
- * Підтягування категорії (назва, без усього зайвого)
- */
+//* Підтягування категорії (назва, без усього зайвого)
+
 export const categoryLookupPipeline = [
-  {
-    $lookup: {
-      from: 'categories',
-      localField: 'category',
-      foreignField: '_id',
-      as: 'category',
-    },
-  },
-  { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      category: {
-        name: '$category.name',
-        image: { $ifNull: ['$category.image', '$category.img_url'] },
-      },
-    },
-  },
+	{
+		$lookup: {
+			from: 'categories',
+			localField: 'category',
+			foreignField: '_id',
+			as: 'category',
+		},
+	},
+	{ $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+	{
+		$addFields: {
+			category: {
+				name: '$category.name',
+				image: { $ifNull: ['$category.image', '$category.img_url'] },
+			},
+		},
+	},
 ];
 
-/**
- * Готовий pipeline для агрегування товарів
- */
+// * Готовий pipeline для агрегування товарів
+
 export const goodsBasePipeline = (filter = {}, sortStage = { createdAt: -1 }, skip = 0, limit) => [
 	{ $match: filter },
 	{ $sort: sortStage },

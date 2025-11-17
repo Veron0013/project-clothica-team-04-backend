@@ -19,7 +19,7 @@ export const registerUser = async (req, res) => {
   if (!phone) throw createHttpError(400, 'Invalid phone number');
 
   const exists = await User.findOne({ phone });
-  if (exists) throw createHttpError(400, 'Phone already in use');
+  if (exists) throw createHttpError(409, 'Phone already in use');
 
   const user = await User.create({ phone, password, name });
   const newSession = await createSession(user._id);
