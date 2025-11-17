@@ -32,6 +32,7 @@ const orderSchema = new Schema({
         ref: 'User',
         required: false,
         index: true,
+        default: null,
     },
     items: [orderItemSchema],
     totalAmount: {
@@ -65,7 +66,8 @@ const orderSchema = new Schema({
     },
     comment: {
         type: String,
-        trim: true
+        trim: true,
+        default: "",
     },
 },
     {

@@ -17,15 +17,15 @@ const itemSchema = Joi.object({
 
 export const createOrderSchema = {
     [Segments.BODY]: Joi.object({
-        userId: Joi.string().custom(isValidOblectId),
+        userId: Joi.string().custom(isValidOblectId).allow(null).optional(),
         items: Joi.array().items(itemSchema).min(1).required(),
         totalAmount: Joi.number().min(0.01).required(),
         deliveryDetails: Joi.object({
             fullName: Joi.string().min(3).required(),
             phone: Joi.string().min(10).required(),
-            address: Joi.string().min(10).required(),
+            address: Joi.string().min(6).required(),
         }).required(),
-        comment: Joi.string(),
+        comment: Joi.string().allow('').optional()
     }),
 };
 
