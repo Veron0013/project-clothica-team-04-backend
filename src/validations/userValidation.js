@@ -13,7 +13,7 @@ export const updateUserSchema = {
 				if (!normalized) return helpers.error("any.invalid");
 				return normalized;
 			}, "Phone normalization"),
-		warehoseString: Joi.string().allow("", null),
+		warehoseNumber: Joi.string().allow("", null),
 		username: Joi.string().required(),
 		avatar: Joi.any(),
 	}),

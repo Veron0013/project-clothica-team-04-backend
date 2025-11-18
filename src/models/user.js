@@ -44,7 +44,7 @@ const userSchema = new Schema(
       type: String,
       trim: true
     },
-    warehoseString: {
+    warehoseNumber: {
       type: String,
       trim: true
     },
