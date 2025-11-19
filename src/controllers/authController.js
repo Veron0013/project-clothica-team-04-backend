@@ -139,10 +139,10 @@ export const getSession = async (req, res, next) => {
 };
 
 export const requestResetEmail = async (req, res, next) => {
-  const { email } = req.body;
+  const { phone, email } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ phone });
 
     if (!user) {
       return res.status(200).json({
@@ -153,7 +153,7 @@ export const requestResetEmail = async (req, res, next) => {
     }
 
     const resetToken = jwt.sign(
-      { sub: user._id, email },
+      { sub: user._id, phone },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
@@ -189,9 +189,11 @@ export const requestResetEmail = async (req, res, next) => {
 export const resetPassword = async (req, res, next) => {
   const { token, password } = req.body;
 
+  console.log(token, password)
+
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({ _id: payload.sub, email: payload.email });
+    const user = await User.findOne({ _id: payload.sub, phone: payload.phone });
 
     if (!user) {
       return next(createHttpError(404, "Користувача не знайдено."));
