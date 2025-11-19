@@ -65,18 +65,22 @@ export const categoryLookupPipeline = [
 
 // * Готовий pipeline для агрегування товарів
 
-export const goodsBasePipeline = (filter = {}, sortStage = { createdAt: -1 }, skip = 0, limit) => [
+export const goodsBasePipeline = (filter = {}, sortStage, skip, limit) => [
 	{ $match: filter },
+
+	// Lookup-и не змінюють кількість документів
+	...feedbackPipeline("$_id"),
+	...categoryLookupPipeline,
+
 	{ $sort: sortStage },
 	{ $skip: skip },
 	{ $limit: limit },
-	...feedbackPipeline('$_id'),
-	...categoryLookupPipeline,
+
 	{
 		$project: {
 			name: 1,
-			price: '$price.value',
-			currency: '$price.currency',
+			price: "$price.value",
+			currency: "$price.currency",
 			color: 1,
 			size: 1,
 			gender: 1,

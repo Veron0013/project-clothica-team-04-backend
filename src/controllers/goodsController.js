@@ -23,7 +23,6 @@ export const getAllGoods = async (req, res, next) => {
       sizes,
       fromPrice,
       toPrice,
-      color,
       gender,
       page,
       limit,
@@ -31,62 +30,77 @@ export const getAllGoods = async (req, res, next) => {
       search,
     } = req.query;
 
-    //const pageNum = Math.max(1, Number(page) || 1);
-    //const limitNum = Math.min(12, Math.max(8, Number(limit) || 12));
-    const priceMin = Number(fromPrice);
-    const priceMax = Number(toPrice);
+    const filter = {};
 
-    const filter = {}
+    // --- CATEGORY ---
+    if (category && isValidObjectId(category)) {
+      filter.category = new Types.ObjectId(category);
+    }
 
+    // --- PRICE ---
+    if (fromPrice && toPrice) {
+      const min = Number(fromPrice);
+      const max = Number(toPrice);
+      if (min <= max) {
+        filter["price.value"] = { $gte: min, $lte: max };
+      }
+    }
+
+    // --- GENDER ---
+    if (gender) {
+      const list = toList(gender).map(g => g.toLowerCase());
+      filter.gender = list.length > 1 ? { $in: list } : list[0];
+    }
+
+    // --- SEARCH ---
     if (search) {
       if (search.length > 5) {
-        // text-indexed search
         filter.$text = { $search: search };
       } else {
-        // fast anchored prefix search (індекс теж може використовуватись)
         filter.name = { $regex: `^${search}`, $options: "i" };
       }
     }
 
-    if (priceMin > 0 && priceMax > 0) {
-      if (priceMin > priceMax)
-        throw createHttpError(400, 'fromPrice must be <= toPrice');
+    // -------- SIZE (основна логіка) --------
+    const selectedSizes = toList(sizes ?? []);
 
-      filter['price.value'] = { $gte: priceMin, $lte: priceMax }
+    if (selectedSizes.length === 1) {
+      // Строгий фільтр: може бути 0
+      filter.size = { $in: selectedSizes };
     }
 
-    if (category && isValidObjectId(category)) filter.category = new Types.ObjectId(`${category}`);
+    if (selectedSizes.length > 1) {
+      // Отримуємо дійсно доступні розміри (після category/price/gender/search)
+      const availableSizes = await Good.distinct("size", filter);
 
-    if (sizes) {
-      const list = toList(sizes);
-      if (list.length) filter.size = { $in: list };
-    }
-    if (color) filter.color = color;
+      const validSizes = selectedSizes.filter(s =>
+        availableSizes.includes(s)
+      );
 
-    if (gender) {
-      const list = toList(gender).map(s => s.toLowerCase());
-      if (list.length === 1) {
-        filter.gender = list[0];
-      } else if (list.length > 1) {
-        filter.gender = { $in: Array.from(new Set(list)) };
+      if (validSizes.length > 0) {
+        filter.size = { $in: validSizes };
       }
+      // Якщо validSizes.length === 0 → НЕ додаємо size у фільтр
+      // Тобто size не впливає
     }
+
+    // --- SORT ---
     const sortMap = {
-      price_asc: { 'price.value': 1 },
-      price_desc: { 'price.value': -1 },
+      price_asc: { "price.value": 1 },
+      price_desc: { "price.value": -1 },
       name_asc: { name: 1 },
       name_desc: { name: -1 },
     };
-    //const sortStage = sortMap[sort] || { createdAt: -1 };
+    const sortStage = sortMap[sort] || { createdAt: -1 };
 
-    const sortStage = sortMap[sort] || { category: 1, _id: 1 };
-
-
-    const pageNum = Math.max(1, Number(page));
-    const limitNum = Math.max(8, Number(limit));
+    // --- PAGINATION ---
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.max(8, Number(limit) || 12);
     const skip = (pageNum - 1) * limitNum;
 
+    // --- PIPELINE ---
     const pipeline = goodsBasePipeline(filter, sortStage, skip, limitNum);
+
     const goods = await Good.aggregate(pipeline);
     const totalGoods = await Good.countDocuments(filter);
 
@@ -97,6 +111,7 @@ export const getAllGoods = async (req, res, next) => {
       totalPages: Math.ceil(totalGoods / limitNum),
       goods,
     });
+
   } catch (err) {
     next(err);
   }

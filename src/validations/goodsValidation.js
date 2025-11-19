@@ -10,7 +10,10 @@ export const getAllGoodsSchema = {
   [Segments.QUERY]: Joi.object({
     search: Joi.string().trim(),
     category: Joi.string().custom(objectId),
-    sizes: Joi.string().pattern(csvEnumRegex(SIZES)),
+    sizes: Joi.alternatives().try(
+      Joi.string().valid(...SIZES),
+      Joi.array().items(Joi.string().valid(...SIZES))
+    ).optional(),
     fromPrice: Joi.number().integer().min(1).max(1999999).default(1),
     toPrice: Joi.number().integer().min(2).max(2000000).default(20000),
     color: Joi.string().valid(...COLORS),
