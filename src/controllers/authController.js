@@ -13,13 +13,13 @@ import { normalizePhone } from '../utils/normalizePhone.js';
 
 export const registerUser = async (req, res) => {
   const { phone: rawPhone, password, name } = req.body ?? {};
-  if (!rawPhone || !password) throw createHttpError(400, 'Phone and password required');
+  if (!rawPhone || !password) throw createHttpError(400, 'Необхідно ввести номер телефону та пароль.');
 
   const phone = normalizePhone(rawPhone);
-  if (!phone) throw createHttpError(400, 'Invalid phone number');
+  if (!phone) throw createHttpError(400, 'Некоректний номер телефону.');
 
   const exists = await User.findOne({ phone });
-  if (exists) throw createHttpError(409, 'Phone already in use');
+  if (exists) throw createHttpError(409, 'Цей номер телефону вже використовується.');
 
   const user = await User.create({ phone, password, name });
   const newSession = await createSession(user._id);
@@ -32,19 +32,19 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res, next) => {
   try {
     const { phone: rawPhone, password } = req.body ?? {};
-    if (!rawPhone || !password) throw createHttpError(400, 'Phone and password required');
+    if (!rawPhone || !password) throw createHttpError(400, 'Необхідно ввести номер телефону та пароль.');
 
     const phone = normalizePhone(rawPhone);
-    if (!phone) throw createHttpError(400, 'Invalid phone number');
+    if (!phone) throw createHttpError(400, 'Некоректний номер телефону.');
 
     const user = await User.findOne({ phone }).select('+password');
-    if (!user) throw createHttpError(401, 'Invalid phone or password');
+    if (!user) throw createHttpError(401, 'Невірний номер телефону або пароль.');
 
     const isValid = await (typeof user.comparePassword === 'function'
       ? user.comparePassword(password)
       : bcrypt.compare(password, user.password));
 
-    if (!isValid) throw createHttpError(401, 'Invalid phone or password');
+    if (!isValid) throw createHttpError(401, 'Невірний номер телефону або пароль.');
 
     await Session.deleteOne({ userId: user._id });
 
@@ -87,7 +87,7 @@ export const refreshUserSession = async (req, res) => {
 
   if (!sessionId || !refreshToken) {
     clearAuthCookies(res);
-    throw createHttpError(400, 'Invalid or expired refresh token');
+    throw createHttpError(400, 'Недійсний або прострочений токен оновлення.');
   }
 
   console.log("sessionId", sessionId, refreshToken)
@@ -95,13 +95,13 @@ export const refreshUserSession = async (req, res) => {
   const session = await Session.findOne({ _id: sessionId, refreshToken });
   if (!session) {
     clearAuthCookies(res);
-    throw createHttpError(401, 'Session not found');
+    throw createHttpError(401, 'Сесію не знайдено.');
   }
 
   if (new Date() > new Date(session.refreshTokenValidUntil)) {
     await Session.deleteOne({ _id: sessionId, refreshToken });
     clearAuthCookies(res);
-    throw createHttpError(401, 'Token expired');
+    throw createHttpError(401, 'Термін дії токена закінчився.');
   }
 
   await Session.deleteOne({ _id: sessionId, refreshToken });
@@ -111,7 +111,7 @@ export const refreshUserSession = async (req, res) => {
   const user = await User.findById(session.userId).select('-password').lean();
   if (!user) {
     clearAuthCookies(res);
-    throw createHttpError(401, 'User not found');
+    throw createHttpError(401, 'Користувача не знайдено.');
   }
 
   return res.json(user);
