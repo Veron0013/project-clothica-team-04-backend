@@ -2,8 +2,8 @@ import { Joi, Segments } from 'celebrate';
 
 export const registerUserSchema = Joi.object({
   phone: Joi.string().required(),
-  password: Joi.string().min(8).required(),
-  name: Joi.string().allow('', null),
+  password: Joi.string().min(8).max(128).required(),
+  name: Joi.string().max(32).allow('', null),
 }).unknown(false);
 
 export const loginUserSchema = Joi.object({
