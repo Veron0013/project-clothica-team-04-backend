@@ -26,7 +26,6 @@ export const registerUser = async (req, res) => {
   setSessionCookies(res, newSession);
 
   res.status(201).json(user);
-
 };
 
 export const loginUser = async (req, res, next) => {
@@ -76,13 +75,12 @@ export const logoutUser = async (req, res) => {
     console.error('Error deleting session:', error.message);
   }
 
-  clearAuthCookies(res)
+  clearAuthCookies(res);
 
   res.status(204).send();
 };
 
 export const refreshUserSession = async (req, res) => {
-
   const { sessionId, refreshToken } = req.cookies || {};
 
   if (!sessionId || !refreshToken) {
@@ -90,7 +88,7 @@ export const refreshUserSession = async (req, res) => {
     throw createHttpError(400, 'Недійсний або прострочений токен оновлення.');
   }
 
-  console.log("sessionId", sessionId, refreshToken)
+  console.log('sessionId', sessionId, refreshToken);
 
   const session = await Session.findOne({ _id: sessionId, refreshToken });
   if (!session) {
@@ -147,19 +145,15 @@ export const requestResetEmail = async (req, res, next) => {
     if (!user) {
       return res.status(200).json({
         data: {
-          message: "Якщо такий email існує — лист для відновлення надіслано.",
-        }
+          message: 'Якщо такий email існує — лист для відновлення надіслано.',
+        },
       });
     }
 
-    const resetToken = jwt.sign(
-      { sub: user._id, phone },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+    const resetToken = jwt.sign({ sub: user._id, phone }, process.env.JWT_SECRET, { expiresIn: '15m' });
 
-    const templatePath = path.resolve("src/templates/reset-password-email.html");
-    const templateSource = await fs.readFile(templatePath, "utf-8");
+    const templatePath = path.resolve('src/templates/reset-password-email.html');
+    const templateSource = await fs.readFile(templatePath, 'utf-8');
 
     const template = handlebars.compile(templateSource);
 
@@ -171,32 +165,31 @@ export const requestResetEmail = async (req, res, next) => {
     await sendMail({
       from: process.env.SMTP_FROM,
       to: email,
-      subject: "Reset your password",
+      subject: 'Reset your password',
       html,
     });
 
     return res.status(200).json({
       data: {
-        message: "Лист для відновлення пароля надіслано.",
-      }
+        message: 'Лист для відновлення пароля надіслано.',
+      },
     });
   } catch (error) {
-    next(createHttpError(500, "Помилка під час надсилання листа." + error?.message));
+    next(createHttpError(500, 'Помилка під час надсилання листа.' + error?.message));
   }
 };
-
 
 export const resetPassword = async (req, res, next) => {
   const { token, password } = req.body;
 
-  console.log(token, password)
+  console.log(token, password);
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findOne({ _id: payload.sub, phone: payload.phone });
 
     if (!user) {
-      return next(createHttpError(404, "Користувача не знайдено."));
+      return next(createHttpError(404, 'Користувача не знайдено.'));
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -207,17 +200,98 @@ export const resetPassword = async (req, res, next) => {
 
     return res.status(200).json({
       data: {
-        message: "Пароль змінено. Увійдіть повторно.",
+        message: 'Пароль змінено. Увійдіть повторно.',
       },
     });
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return next(createHttpError(401, "Термін дії токена вичерпано."));
+    if (error.name === 'TokenExpiredError') {
+      return next(createHttpError(401, 'Термін дії токена вичерпано.'));
     }
-    if (error.name === "JsonWebTokenError") {
-      return next(createHttpError(401, "Токен недійсний."));
+    if (error.name === 'JsonWebTokenError') {
+      return next(createHttpError(401, 'Токен недійсний.'));
     }
     next(error);
   }
 };
 
+export const requestChangeEmail = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { newEmail } = req.body;
+
+    if (!newEmail) {
+      return next(createHttpError(400, 'Немає email у запиті'));
+    }
+
+    if (newEmail === req.user.email) {
+      return next(createHttpError(400, 'Новий email не може співпадати зі старим.'));
+    }
+
+    // Перевірка чи email вже зайнятий
+    const exists = await User.findOne({ email: newEmail });
+    if (exists && exists._id.toString() !== userId) {
+      return next(createHttpError(409, 'Пошта вже зайнята.'));
+    }
+
+    const token = jwt.sign({ sub: userId, newEmail }, process.env.JWT_CHANGE_EMAIL_SECRET || process.env.JWT_SECRET, {
+      expiresIn: '15m',
+    });
+
+    const link = `${process.env.FRONTEND_DOMAIN_LINK}/change-email?token=${token}`;
+
+    const templatePath = path.resolve('src/templates/change-email.html');
+    const templateSource = await fs.readFile(templatePath, 'utf-8');
+    const template = handlebars.compile(templateSource);
+    const html = template({
+      name: req.user.name,
+      link,
+      currentEmail: req.user.email,
+      newEmail,
+    });
+
+    await sendMail({
+      to: req.user.email || newEmail, //  надсилаємо на діючу пошту, або пошту яку додали вперше
+      subject: 'Підтвердження зміни email',
+      html,
+    });
+
+    return res.status(200).json({
+      message: 'Лист для підтвердження відправлено, прийміть зміни протягом 15 хвилин!!!',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const confirmChangeEmail = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) return next(createHttpError(400, 'Token missing'));
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_CHANGE_EMAIL_SECRET || process.env.JWT_SECRET);
+    } catch {
+      return next(createHttpError(401, 'Недійсний токен.'));
+    }
+
+    const { sub: userId, newEmail } = payload;
+
+    if (!newEmail) {
+      return next(createHttpError(400, 'Немає нової пошти в токені'));
+    }
+
+    // Перевірка зайнятості email
+    const exists = await User.findOne({ email: newEmail });
+    if (exists && exists._id.toString() !== userId) {
+      return next(createHttpError(409, 'Пошта вже зайнята'));
+    }
+
+    await User.updateOne({ _id: userId }, { email: newEmail });
+
+    return res.status(200).json({ message: 'Пошта успішно змінена.' });
+  } catch (error) {
+    next(error);
+  }
+};
