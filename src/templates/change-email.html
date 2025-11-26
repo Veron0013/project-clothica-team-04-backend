@@ -1,0 +1,101 @@
+<!-- <!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Заміна email</title>
+</head>
+
+<body>
+    <h1 style="color: black">Привіт, {{name}}!</h1>
+
+    <p>Ви запросили зміну електронної пошти на
+        <a href="https://clothica-team-04-frontend.vercel.app/" target="_blank">Clothica</a>
+        .
+    </p>
+
+    <p>
+        <strong>Поточна адреса:</strong> {{currentEmail}} <br />
+        <strong>Нова адреса:</strong> {{newEmail}}
+    </p>
+
+    <p>Натисни <a href="{{link}}">ТУТ</a> для підтвердження зміни електронної адреси.</p>
+
+    <p style="margin-top:20px; color: gray;">
+        Якщо ви не надсилали запит — просто ігноруйте цей лист.
+    </p>
+</body>
+
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Заміна email</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4; padding: 30px 0;">
+        <tr>
+            <td align="center">
+                <table cellpadding="0" cellspacing="0" width="600"
+                    style="background:#ffffff; border-radius:8px; padding: 30px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+
+                    <!-- HEADER -->
+                    <tr>
+                        <td style="text-align:center; padding-bottom:20px;">
+                            <h1 style="color:black; margin:0; font-size:28px;">
+                                Привіт, {{name}}!
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- TEXT -->
+                    <tr>
+                        <td style="font-size:16px; color:#333; line-height:1.6;">
+                            <p style="margin:0 0 15px;">
+                                Ви запросили зміну електронної пошти на
+                                <a href="https://clothica-team-04-frontend.vercel.app/" target="_blank"
+                                    style="color:rgb(61, 48, 48);  font-weight:bold;">
+                                    Clothica
+                                </a>.
+                            </p>
+
+                            <p style="margin:0 0 20px;">
+                                <strong style="color:#555;">Поточна адреса:</strong> {{currentEmail}} <br />
+                                <strong style="color:#555;">Нова адреса:</strong> {{newEmail}}
+                            </p>
+
+                            <div style="text-align:center; margin: 30px 0;">
+                                <a href="{{link}}" style="
+                      background-color: #c5e1a5;
+                      color:#373535;
+                      padding:14px 30px;
+                      text-decoration:none;
+                      border-radius:6px;
+                      font-size:16px;
+                      font-weight:bold;
+                      display:inline-block;
+                      ">
+                                    Підтвердити зміну email
+                                </a>
+                            </div>
+
+                            <p style="margin:0; color:#777; font-size:14px; text-align:center;">
+                                Якщо ви не надсилали запит — просто ігноруйте цей лист.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

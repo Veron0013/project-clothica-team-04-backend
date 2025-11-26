@@ -5,19 +5,19 @@ const userSchema = new Schema(
   {
     username: {
       type: String,
-      trim: true
+      trim: true,
     },
     name: {
       type: String,
-      trim: true
+      trim: true,
     },
     lastname: {
       type: String,
-      trim: true
+      trim: true,
     },
     city: {
       type: String,
-      trim: true
+      trim: true,
     },
     phone: {
       type: String,
@@ -29,29 +29,30 @@ const userSchema = new Schema(
       type: String,
       lowercase: true,
       trim: true,
+      required: false,
     },
     password: {
       type: String,
       required: true,
-      select: false
+      select: false,
     },
     role: {
       type: String,
       enum: ['user', 'admin'],
-      default: 'user'
+      default: 'user',
     },
     warehoseId: {
       type: String,
-      trim: true
+      trim: true,
     },
     warehoseNumber: {
       type: String,
-      trim: true
+      trim: true,
     },
     avatar: {
       type: String,
       required: false,
-      default: "https://ac.goit.global/fullstack/react/default-avatar.jpg",
+      default: 'https://ac.goit.global/fullstack/react/default-avatar.jpg',
     },
   },
 
@@ -72,11 +73,7 @@ userSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      $and: [
-        { email: { $exists: true } },
-        { email: { $ne: '' } },
-        { email: { $ne: null } },
-      ],
+      $and: [{ email: { $exists: true } }, { email: { $ne: '' } }, { email: { $ne: null } }],
     },
   },
 );
@@ -96,4 +93,3 @@ userSchema.methods.hasRole = function (role) {
 };
 
 export const User = model('User', userSchema);
-

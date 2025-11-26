@@ -24,3 +24,15 @@ export const resetPasswordSchema = {
     token: Joi.string().required(),
   }),
 };
+
+export const requestChangeEmailSchema = {
+  [Segments.BODY]: Joi.object({
+    newEmail: Joi.string().email().required(),
+  }),
+};
+
+export const confirmChangeEmailSchema = {
+  [Segments.BODY]: Joi.object({
+    token: Joi.string().required(),
+  }),
+};
