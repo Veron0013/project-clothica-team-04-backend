@@ -142,12 +142,12 @@ export const requestResetEmail = async (req, res, next) => {
   const { phone, email } = req.body;
 
   try {
-    const user = await User.findOne({ phone });
+    const user = await User.findOne({ phone, email });
 
     if (!user) {
       return res.status(200).json({
         data: {
-          message: "Якщо такий email існує — лист для відновлення надіслано.",
+          message: "Лист для відновлення пароля надіслано...",
         }
       });
     }
@@ -189,7 +189,7 @@ export const requestResetEmail = async (req, res, next) => {
 export const resetPassword = async (req, res, next) => {
   const { token, password } = req.body;
 
-  console.log(token, password)
+  //console.log(token, password)
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
